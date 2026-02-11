@@ -391,6 +391,28 @@ class ExecutorEngine:
 
         try:
             import subprocess
+
+            # 检查是否有未提交的更改
+            status_result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            # 如果有未提交的更改，先强制丢弃
+            if status_result.stdout.strip():
+                print("[回滚] 检测到未提交更改，正在丢弃...")
+
+                # 使用 git checkout -- 放弃工作目录的更改
+                subprocess.run(
+                    ["git", "checkout", "--", "."],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+
+            # 尝试 pop stash
             result = subprocess.run(
                 ["git", "stash", "pop"],
                 capture_output=True,
@@ -402,8 +424,19 @@ class ExecutorEngine:
                 print("[回滚成功] 已恢复到之前的状态")
                 return True
             else:
-                print(f"[回滚失败] {result.stderr}")
-                return False
+                # 如果仍然失败，尝试使用 --index
+                result = subprocess.run(
+                    ["git", "stash", "pop", "--index"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    print("[回滚成功] 已恢复到之前的状态")
+                    return True
+                else:
+                    print(f"[回滚失败] {result.stderr}")
+                    return False
         except (subprocess.TimeoutExpired, Exception) as e:
             print(f"[回滚异常] {e}")
             return False
