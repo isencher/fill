@@ -65,23 +65,27 @@ def demo_rollback():
     print("-" * 60)
 
     auto_file = Path("demo_auto_rollback.txt")
-    auto_file.write_text("重要内容 - 不应该丢失\n")
+    auto_file.write_text("重要内容 - 已提交\n")
     run_git("add demo_auto_rollback.txt")
     run_git("commit -m 'Commit: 自动回滚测试'")
 
-    original = auto_file.read_text()
-    print(f"原始内容: {original.strip()}")
+    committed_content = auto_file.read_text()
+    print(f"已提交内容: {committed_content.strip()}")
 
     # 创建未提交更改（用于 stash）
-    auto_file.write_text("临时更改 - 用于回滚点\n")
+    auto_file.write_text("工作区更改 - 将被 stash 保存\n")
+    working_content = auto_file.read_text()
     rollback_point = engine._create_rollback_point()
     print(f"创建回滚点: {'✓ 成功' if rollback_point else '✗ 失败'}")
+
+    # 注意：stash 后工作目录恢复到已提交状态
+    print(f"Stash 后工作区: {auto_file.read_text().strip()}")
 
     # 模拟操作（会破坏文件）
     auto_file.write_text("错误内容 - 应该被回滚\n")
     print(f"操作失败后: {auto_file.read_text().strip()}")
 
-    # 执行手动回滚（模拟自动回滚）
+    # 执行回滚
     print("执行自动回滚...")
     success = engine._rollback_to(rollback_point)
 
@@ -89,7 +93,8 @@ def demo_rollback():
         restored = auto_file.read_text()
         print(f"✓ 自动回滚成功")
         print(f"恢复后内容: {restored.strip()}")
-        print(f"✓ 内容验证: {'正确' if restored == original else '失败'}")
+        # 验证恢复到 stash 保存的内容
+        print(f"✓ 内容验证: {'正确' if restored == working_content else '失败'}")
     else:
         print("✗ 自动回滚失败")
 
