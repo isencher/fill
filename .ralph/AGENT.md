@@ -79,6 +79,8 @@ Before moving to the next feature, ALL changes must be:
    - Use conventional commit format: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, etc.
    - Include scope when applicable: `feat(api):`, `fix(ui):`, `test(auth):`
    - Write descriptive messages that explain WHAT changed and WHY
+   - **DO NOT** add `Co-Authored-By: Claude Sonnet ...` trailer to commit messages
+   - Keep commit messages clean and focused on the actual change
 
 2. **Pushed to Remote Repository**:
    ```bash

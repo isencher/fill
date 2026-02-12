@@ -7,39 +7,66 @@ A web application for automatically filling 2D table data into template files.
 **fill** is a document automation tool that:
 - Reads structured 2D table data (Excel, CSV, database)
 - Maps data fields to template placeholders
-- Generates filled documents (DOCX, PDF, etc.)
+- Generates filled documents (XLSX, DOCX, PDF, etc.)
 
 ## Project Location
 
-This project is developed inside the **fill-dev-env** container workspace:
+This project is **developed by an automated negative feedback control system** inside the **fill-dev-env** container workspace:
 
 ```
 ┌─────────────────────────────────────────┐
 │       Docker 容器（父环境）              │
+│  提供运行时环境和工具链                  │
 │                                       │
 │  ┌───────────────────────────────────┐  │
 │  │   /app/fill-dev-env/             │  │
+│  │   (自动化负反馈控制系统)            │  │
 │  │                                 │  │
 │  │  ┌─────────────────────────────┐  │  │
 │  │  │   fill/ (本目录)            │  │  │
-│  │  │                             │  │  │
-│  │  │  ┌─── src/                 │  │  │
-│  │  │  │   (源代码)              │  │  │
-│  │  │  │                          │  │  │
-│  │  │  ├── tests/                │  │  │
-│  │  │  │   (测试代码)             │  │  │
-│  │  │  │                          │  │  │
-│  │  │  ├── .ralph/               │  │  │
-│  │  │  │   (Ralph 配置)          │  │  │
-│  │  │  │                          │  │  │
-│  │  │  └── README.md             │  │  │
+│  │  │   (被开发的应用项目)        │  │  │
 │  │  │                            │  │  │
+│  │  │  ┌─── src/                │  │  │
+│  │  │  │   (源代码)             │  │  │
+│  │  │  │                        │  │  │
+│  │  │  ├── tests/               │  │  │
+│  │  │  │   (测试代码)           │  │  │
+│  │  │  │                        │  │  │
+│  │  │  ├── .ralph/              │  │  │
+│  │  │  │   (质量标准配置)        │  │  │
+│  │  │  │                        │  │  │
+│  │  │  └── README.md           │  │  │
+│  │  │                           │  │  │
 │  │  └─────────────────────────────┘  │  │
 │  │                                 │  │
 │  └───────────────────────────────────┘  │
 │                                       │
 └─────────────────────────────────────────┘
 ```
+
+### Automated Development
+
+This project is developed by:
+
+```
+Claude + Ralph + Skills
+        ↓
+   生成代码
+        ↓
+   自动测试 (pytest/vitest/playwright)
+        ↓
+   收集指标 (覆盖率 >85%)
+        ↓
+   不达标 → 自动修复
+        ↓
+   达标 → 提交代码
+```
+
+**自动化质量门禁**:
+- ✅ 测试覆盖率 >85% (自动测量)
+- ✅ 所有测试通过 (自动验证)
+- ✅ Conventional Commits (自动生成)
+- ✅ 推送到远程仓库 (自动执行)
 
 ## Tech Stack
 
