@@ -9,6 +9,38 @@ A web application for automatically filling 2D table data into template files.
 - Maps data fields to template placeholders
 - Generates filled documents (DOCX, PDF, etc.)
 
+## Project Location
+
+This project is developed inside the **fill-dev-env** container workspace:
+
+```
+┌─────────────────────────────────────────┐
+│       Docker 容器（父环境）              │
+│                                       │
+│  ┌───────────────────────────────────┐  │
+│  │   /app/fill-dev-env/             │  │
+│  │                                 │  │
+│  │  ┌─────────────────────────────┐  │  │
+│  │  │   fill/ (本目录)            │  │  │
+│  │  │                             │  │  │
+│  │  │  ┌─── src/                 │  │  │
+│  │  │  │   (源代码)              │  │  │
+│  │  │  │                          │  │  │
+│  │  │  ├── tests/                │  │  │
+│  │  │  │   (测试代码)             │  │  │
+│  │  │  │                          │  │  │
+│  │  │  ├── .ralph/               │  │  │
+│  │  │  │   (Ralph 配置)          │  │  │
+│  │  │  │                          │  │  │
+│  │  │  └── README.md             │  │  │
+│  │  │                            │  │  │
+│  │  └─────────────────────────────┘  │  │
+│  │                                 │  │
+│  └───────────────────────────────────┘  │
+│                                       │
+└─────────────────────────────────────────┘
+```
+
 ## Tech Stack
 
 **Status**: Tech stack not yet selected
@@ -17,10 +49,10 @@ A web application for automatically filling 2D table data into template files.
 - **Python**: FastAPI + pytest (recommended for document processing)
 - **Node.js**: Express/Fastify + Vitest
 
-## Project Structure
+## Directory Structure
 
 ```
-fill/                      # Application project root
+fill/                      # Application project root (本目录)
 ├── src/                   # Source code (empty - awaiting implementation)
 │   ├── api/              # API endpoints
 │   ├── services/         # Business logic
@@ -31,49 +63,57 @@ fill/                      # Application project root
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
 ├── .ralph/               # Ralph AI agent configuration
-│   ├── AGENT.md          # Build instructions & quality standards
-│   ├── PROMPT.md         # Project prompt
-│   └── fix_plan.md       # Development tasks
 ├── .ralphrc              # Ralph configuration
 ├── pyproject.toml        # Python config (to be created)
 ├── requirements.txt      # Python dependencies (to be created)
 ├── package.json          # Node.js config (to be created - optional)
-├── Dockerfile            # Container image (to be created)
 └── README.md             # This file
 ```
 
+## Container Environment
+
+This project requires the **fill-dev-env** container:
+
+| Container Provides | For This Project |
+|------------------|------------------|
+| Python 3.11 | Runtime environment |
+| Node.js 20+ | E2E testing with Playwright |
+| Browsers | Playwright E2E tests |
+| PostgreSQL | Test database |
+| pytest/vitest | Testing frameworks |
+| Prometheus/Grafana | Metrics collection |
+
+The container **must satisfy** requirements defined in:
+- [docker-requirements.md](../docker-requirements.md) (in parent directory)
+
 ## Quick Start
 
-### Prerequisites
-
-This project requires the **fill-dev-env** development environment:
-
 ```bash
-# Set up the development environment (in parent directory)
-cd ../
+# 1. Start the container (on host - in parent directory)
+cd /app/fill-dev-env
 docker-compose up -d
+
+# 2. Enter the container
 docker-compose exec app bash
-```
 
-### Development
+# 3. Work on fill project (inside container)
+cd /app/fill-dev-env/fill
 
-```bash
-# Inside the development container
-cd /app/fill
+# 4. Install dependencies (when tech stack is chosen)
+pip install -r requirements.txt    # Python option
+# or
+npm install                        # Node.js option
 
-# Install dependencies (Python - when implemented)
-pip install -r requirements.txt
-
-# Run tests
+# 5. Run tests
 pytest
 
-# Run development server
+# 6. Run development server
 uvicorn src.main:app --reload
 ```
 
 ## Development Standards
 
-This project follows strict quality standards defined in `.ralph/AGENT.md`:
+This project follows strict quality standards in `.ralph/AGENT.md`:
 
 - **Minimum Test Coverage**: 85%
 - **Test Pass Rate**: 100%
@@ -93,12 +133,12 @@ This project follows strict quality standards defined in `.ralph/AGENT.md`:
 - [ ] Batch processing
 - [ ] API for programmatic access
 
-## Testing
+## Testing Targets
 
 ```
-Target Coverage:
+Coverage Requirements:
 ├── Unit Tests:     >90%  (business logic, services)
-├── Integration:   >85%  (API endpoints, database)
+├── Integration:    >85%  (API endpoints, database)
 └── E2E Tests:     100%  (critical user workflows)
 
 Execution Time:
@@ -111,18 +151,8 @@ Execution Time:
 - [Build Instructions](.ralph/AGENT.md) - Setup and quality standards
 - [Development Tasks](.ralph/fix_plan.md) - Current development plan
 - [Project Context](.ralph/PROMPT.md) - AI agent project prompt
-
-## Parent Project
-
-This application is developed within the **fill-dev-env** infrastructure:
-
-- [fill-dev-env README](../README.md)
-- [Docker Requirements](../docker-requirements.md)
+- [Container Requirements](../docker-requirements.md) - 容器环境要求
 
 ## License
 
 [Specify your license]
-
-## Contact
-
-[Specify contact information]
