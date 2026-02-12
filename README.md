@@ -7,66 +7,37 @@ A web application for automatically filling 2D table data into template files.
 **fill** is a document automation tool that:
 - Reads structured 2D table data (Excel, CSV, database)
 - Maps data fields to template placeholders
-- Generates filled documents (XLSX, DOCX, PDF, etc.)
+- Generates filled documents (DOCX, PDF, etc.)
 
-## Project Location
+## Project Nature
 
-This project is **developed by an automated negative feedback control system** inside the **fill-dev-env** container workspace:
+This is the **product repository** - the output of fill-dev-env automated workflow.
 
 ```
 ┌─────────────────────────────────────────┐
 │       Docker 容器（父环境）              │
-│  提供运行时环境和工具链                  │
 │                                       │
 │  ┌───────────────────────────────────┐  │
-│  │   /app/fill-dev-env/             │  │
-│  │   (自动化负反馈控制系统)            │  │
+│  │   fill-dev-env/                  │  │
+│  │   (自动化开发系统)                  │  │
 │  │                                 │  │
-│  │  ┌─────────────────────────────┐  │  │
-│  │  │   fill/ (本目录)            │  │  │
-│  │  │   (被开发的应用项目)        │  │  │
-│  │  │                            │  │  │
-│  │  │  ┌─── src/                │  │  │
-│  │  │  │   (源代码)             │  │  │
-│  │  │  │                        │  │  │
-│  │  │  ├── tests/               │  │  │
-│  │  │  │   (测试代码)           │  │  │
-│  │  │  │                        │  │  │
-│  │  │  ├── .ralph/              │  │  │
-│  │  │  │   (质量标准配置)        │  │  │
-│  │  │  │                        │  │  │
-│  │  │  └── README.md           │  │  │
-│  │  │                           │  │  │
-│  │  └─────────────────────────────┘  │  │
+│  │  ├── .ralph/                    │  │  ← Ralph 配置在这里
+│  │  │   ├── AGENT.md              │  │
+│  │  │   ├── PROMPT.md             │  │
+│  │  │   └── fix_plan.md           │  │
+│  │  │                              │  │
+│  │  └── fill/ ← (本目录)          │  │
+│  │      (产品代码仓库)                │  │
 │  │                                 │  │
 │  └───────────────────────────────────┘  │
 │                                       │
 └─────────────────────────────────────────┘
 ```
 
-### Automated Development
-
-This project is developed by:
-
-```
-Claude + Ralph + Skills
-        ↓
-   生成代码
-        ↓
-   自动测试 (pytest/vitest/playwright)
-        ↓
-   收集指标 (覆盖率 >85%)
-        ↓
-   不达标 → 自动修复
-        ↓
-   达标 → 提交代码
-```
-
-**自动化质量门禁**:
-- ✅ 测试覆盖率 >85% (自动测量)
-- ✅ 所有测试通过 (自动验证)
-- ✅ Conventional Commits (自动生成)
-- ✅ 推送到远程仓库 (自动执行)
+**关键理解**：
+- `fill-dev-env/` = 自动化开发系统（包含 Ralph 配置）
+- `fill/` = 产品代码仓库（开发系统的产出）
+- Ralph 配置只在 fill-dev-env 层，不在 fill 层
 
 ## Tech Stack
 
@@ -79,7 +50,7 @@ Claude + Ralph + Skills
 ## Directory Structure
 
 ```
-fill/                      # Application project root (本目录)
+fill/                      # Product repository (本目录)
 ├── src/                   # Source code (empty - awaiting implementation)
 │   ├── api/              # API endpoints
 │   ├── services/         # Business logic
@@ -89,8 +60,6 @@ fill/                      # Application project root (本目录)
 │   ├── unit/             # Unit tests
 │   ├── integration/      # Integration tests
 │   └── e2e/              # End-to-end tests
-├── .ralph/               # Ralph AI agent configuration
-├── .ralphrc              # Ralph configuration
 ├── pyproject.toml        # Python config (to be created)
 ├── requirements.txt      # Python dependencies (to be created)
 ├── package.json          # Node.js config (to be created - optional)
@@ -99,7 +68,7 @@ fill/                      # Application project root (本目录)
 
 ## Container Environment
 
-This project requires the **fill-dev-env** container:
+This project is developed using **fill-dev-env** container:
 
 | Container Provides | For This Project |
 |------------------|------------------|
@@ -111,16 +80,16 @@ This project requires the **fill-dev-env** container:
 | Prometheus/Grafana | Metrics collection |
 
 The container **must satisfy** requirements defined in:
-- [docker-requirements.md](../docker-requirements.md) (in parent directory)
+- [docker-requirements.md](../docker-requirements.md) (in parent fill-dev-env)
 
 ## Quick Start
 
 ```bash
-# 1. Start the container (on host - in parent directory)
-cd /app/fill-dev-env
+# 1. Start container (on host - in fill-dev-env directory)
+cd /path/to/fill-dev-env
 docker-compose up -d
 
-# 2. Enter the container
+# 2. Enter container
 docker-compose exec app bash
 
 # 3. Work on fill project (inside container)
@@ -138,15 +107,17 @@ pytest
 uvicorn src.main:app --reload
 ```
 
-## Development Standards
+## Quality Standards
 
-This project follows strict quality standards in `.ralph/AGENT.md`:
+This project is developed by automated system with enforced standards:
 
 - **Minimum Test Coverage**: 85%
 - **Test Pass Rate**: 100%
 - **All Tests Must Pass** before committing
 - **Conventional Commits** required
 - **All changes pushed** to remote before moving to next feature
+
+See [fill-dev-env/.ralph/AGENT.md](../.ralph/AGENT.md) for complete quality standards.
 
 ## Features
 
@@ -175,10 +146,9 @@ Execution Time:
 
 ## Documentation
 
-- [Build Instructions](.ralph/AGENT.md) - Setup and quality standards
-- [Development Tasks](.ralph/fix_plan.md) - Current development plan
-- [Project Context](.ralph/PROMPT.md) - AI agent project prompt
+- [fill-dev-env System](../README.md) - 自动化开发系统文档
 - [Container Requirements](../docker-requirements.md) - 容器环境要求
+- [Quality Standards](../.ralph/AGENT.md) - 完整质量标准（在父目录）
 
 ## License
 
