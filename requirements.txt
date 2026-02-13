@@ -4,7 +4,9 @@ sqlalchemy
 psycopg2-binary
 pydantic
 pydantic-settings
+python-multipart
 pytest
 pytest-cov
 pytest-asyncio
 httpx
+aiofiles
