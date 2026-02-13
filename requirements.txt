@@ -1,6 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
-psycopg2
+psycopg2-binary
 pydantic
-test-pkg-3
+pydantic-settings
+pytest
+pytest-cov
+pytest-asyncio
+httpx
