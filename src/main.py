@@ -8,7 +8,9 @@ import tempfile
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import FastAPI, File, HTTPException, UploadFile as FastAPIUploadFile
+from typing import Optional
+
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile as FastAPIUploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -113,5 +115,58 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
             "filename": upload_file.filename,
             "size": upload_file.size,
             "status": upload_file.status.value,
+        }
+    )
+
+
+@app.get("/api/v1/files", tags=["Upload"])
+async def list_files(
+    limit: int = Query(100, ge=1, le=1000, description="Maximum number of files to return"),
+    offset: int = Query(0, ge=0, description="Number of files to skip"),
+) -> JSONResponse:
+    """
+    List all uploaded files with pagination support.
+
+    Args:
+        limit: Maximum number of files to return (1-1000)
+        offset: Number of files to skip for pagination
+
+    Returns:
+        JSONResponse with list of files and pagination metadata
+
+    Raises:
+        HTTPException: 400 if pagination parameters are invalid
+    """
+    # Get all files from storage
+    all_files = list(_uploaded_files.values())
+
+    # Sort by uploaded_at descending (newest first)
+    all_files.sort(key=lambda f: f.uploaded_at, reverse=True)
+
+    # Apply pagination
+    total_count = len(all_files)
+    paginated_files = all_files[offset : offset + limit]
+
+    # Build response with file metadata
+    files_response = [
+        {
+            "file_id": str(f.id),
+            "filename": f.filename,
+            "content_type": f.content_type,
+            "size": f.size,
+            "uploaded_at": f.uploaded_at.isoformat(),
+            "status": f.status.value,
+        }
+        for f in paginated_files
+    ]
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "files": files_response,
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": offset + limit < total_count,
         }
     )
