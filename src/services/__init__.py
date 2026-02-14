@@ -22,6 +22,11 @@ from src.services.template_filler import (
     fill_template,
 )
 from src.services.template_store import TemplateStore, get_template_store
+from src.services.batch_processor import (
+    BatchProcessor,
+    BatchProcessorError,
+    process_batch,
+)
 
 try:
     from src.services.docx_generator import (
@@ -50,6 +55,9 @@ __all__ = [
     "fill_template",
     "TemplateStore",
     "get_template_store",
+    "BatchProcessor",
+    "BatchProcessorError",
+    "process_batch",
     "DocxGenerator",
     "DocxGeneratorError",
     "generate_docx_from_data",
