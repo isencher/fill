@@ -11,6 +11,14 @@ from src.services.mapping_validator import (
     MappingValidator,
     validate_mapping,
 )
+from src.services.output_storage import (
+    OutputStorage,
+    OutputStorageError,
+    get_output_storage,
+    save_output,
+    get_output as get_output_file,
+    get_job_outputs,
+)
 from src.services.parser_factory import get_parser, is_supported_file_type
 from src.services.placeholder_parser import (
     PlaceholderParser,
@@ -46,6 +54,12 @@ __all__ = [
     "MappingValidationError",
     "MappingValidator",
     "validate_mapping",
+    "OutputStorage",
+    "OutputStorageError",
+    "get_output_storage",
+    "save_output",
+    "get_output_file",
+    "get_job_outputs",
     "get_parser",
     "is_supported_file_type",
     "PlaceholderParser",
