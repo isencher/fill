@@ -23,6 +23,18 @@ from src.services.template_filler import (
 )
 from src.services.template_store import TemplateStore, get_template_store
 
+try:
+    from src.services.docx_generator import (
+        DocxGenerator,
+        DocxGeneratorError,
+        generate_docx_from_data,
+        generate_docx_from_template,
+    )
+
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+
 __all__ = [
     "CSVParser",
     "ExcelParser",
@@ -38,4 +50,8 @@ __all__ = [
     "fill_template",
     "TemplateStore",
     "get_template_store",
+    "DocxGenerator",
+    "DocxGeneratorError",
+    "generate_docx_from_data",
+    "generate_docx_from_template",
 ]
