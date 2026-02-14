@@ -56,8 +56,22 @@ async def root() -> FileResponse:
     return FileResponse(index_path)
 
 
+@app.get("/mapping", tags=["Frontend"])
+async def mapping_page() -> FileResponse:
+    """
+    Mapping page - serves column-to-placeholder mapping interface.
+
+    Returns:
+        FileResponse with HTML mapping page
+    """
+    mapping_path = static_dir / "mapping.html"
+    return FileResponse(mapping_path)
+
+
 # In-memory storage for uploaded files (TODO: replace with database in Phase 9)
 _uploaded_files: dict[UUID, UploadFile] = {}
+_uploaded_file_contents: dict[UUID, bytes] = {}  # Store file content bytes
+_mappings_storage: dict[str, dict] = {}  # In-memory mappings storage
 
 
 @app.post("/api/v1/upload", tags=["Upload"], status_code=201)
@@ -114,8 +128,9 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
     with open(file_path, "wb") as f:
         f.write(file_content)
 
-    # Store file metadata in memory
+    # Store file metadata and content in memory
     _uploaded_files[upload_file.id] = upload_file
+    _uploaded_file_contents[upload_file.id] = file_content
 
     return JSONResponse(
         status_code=201,
@@ -555,3 +570,161 @@ async def download_single_output(job_id: str, filename: str) -> StreamingRespons
         }
     )
 
+
+# Mapping API Endpoints
+from src.services import get_parser
+from src.models.mapping import Mapping
+
+
+@app.get("/api/v1/parse/{file_id}", tags=["Parsing"])
+async def parse_file(file_id: str) -> JSONResponse:
+    """
+    Parse uploaded file and return data preview (first 5 rows).
+
+    Args:
+        file_id: ID of uploaded file to parse
+
+    Returns:
+        JSONResponse with parsed data (rows and columns)
+
+    Raises:
+        HTTPException: 404 if file not found
+        HTTPException: 400 if file cannot be parsed
+    """
+    # Convert string ID to UUID for lookup
+    try:
+        file_uuid = UUID(file_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file ID format: {file_id}"
+        )
+
+    # Check if file exists
+    if file_uuid not in _uploaded_files:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File not found: {file_id}"
+        )
+
+    if file_uuid not in _uploaded_file_contents:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File content not found: {file_id}"
+        )
+
+    upload_file = _uploaded_files[file_uuid]
+    file_content = _uploaded_file_contents[file_uuid]
+
+    # Parse file based on extension
+    try:
+        parser_class = get_parser(upload_file.filename)
+        file_extension = upload_file.filename.lower().split('.')[-1]
+
+        # Write content to temp file for parsing (parsers require file paths)
+        temp_dir = Path(tempfile.gettempdir()) / "fill" / "parse"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        # Include original filename with extension for parser compatibility
+        temp_filename = f"{file_id}_{upload_file.filename}"
+        temp_file_path = temp_dir / temp_filename
+
+        with open(temp_file_path, "wb") as f:
+            f.write(file_content)
+
+        # Parse based on file type
+        if file_extension == "csv":
+            rows = parser_class.parse_csv(temp_file_path)
+        elif file_extension in ("xlsx", "xlsm"):
+            rows = parser_class.parse_excel(temp_file_path)
+        else:
+            raise ValueError(f"Unsupported file extension: {file_extension}")
+
+        # Return first 5 rows for preview
+        preview_rows = rows[:5] if rows else []
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "file_id": file_id,
+                "filename": upload_file.filename,
+                "rows": preview_rows,
+                "total_rows": len(rows),
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to parse file: {str(e)}"
+        )
+
+
+@app.post("/api/v1/mappings", tags=["Mappings"], status_code=201)
+async def create_mapping(
+    file_id: str = Query(..., min_length=1, description="ID of uploaded file"),
+    template_id: str = Query(..., min_length=1, description="ID of template"),
+    column_mappings: dict[str, str] = None,
+) -> JSONResponse:
+    """
+    Create a column-to-placeholder mapping.
+
+    Args:
+        file_id: ID of uploaded data file
+        template_id: ID of template to fill
+        column_mappings: Dictionary mapping placeholder names to column names
+
+    Returns:
+        JSONResponse with created mapping data
+
+    Raises:
+        HTTPException: 400 if mapping data is invalid
+        HTTPException: 404 if file or template not found
+    """
+    # Validate file exists
+    if file_id not in _uploaded_files:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File not found: {file_id}"
+        )
+
+    # Validate template exists
+    template = _template_store.get_template(template_id)
+    if template is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Template not found: {template_id}"
+        )
+
+    # Create mapping
+    try:
+        mapping = Mapping(
+            file_id=file_id,
+            template_id=template_id,
+            column_mappings=column_mappings or {}
+        )
+
+        # Store in memory
+        _mappings_storage[mapping.id] = {
+            "id": mapping.id,
+            "file_id": mapping.file_id,
+            "template_id": mapping.template_id,
+            "column_mappings": mapping.column_mappings,
+            "created_at": mapping.created_at.isoformat(),
+        }
+
+        return JSONResponse(
+            status_code=201,
+            content={
+                "message": "Mapping created successfully",
+                "id": mapping.id,
+                "file_id": mapping.file_id,
+                "template_id": mapping.template_id,
+                "column_mappings": mapping.column_mappings,
+                "created_at": mapping.created_at.isoformat(),
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
