@@ -221,7 +221,7 @@ class TestParseFileEndpoint:
 
         # Verify data preview (first 5 rows)
         assert len(data["rows"]) == 5  # First 5 rows
-        assert data["total_rows"] == 7  # Total rows in file
+        assert data["total_rows"] == 6  # Total data rows (excluding header)
 
         # Verify first row has correct columns
         first_row = data["rows"][0]

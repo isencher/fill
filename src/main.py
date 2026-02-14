@@ -595,9 +595,10 @@ async def parse_file(file_id: str) -> JSONResponse:
     try:
         file_uuid = UUID(file_id)
     except ValueError:
+        # Treat invalid UUID format as file not found for better UX
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid file ID format: {file_id}"
+            status_code=404,
+            detail=f"File not found: {file_id}"
         )
 
     # Check if file exists
@@ -681,7 +682,15 @@ async def create_mapping(
         HTTPException: 404 if file or template not found
     """
     # Validate file exists
-    if file_id not in _uploaded_files:
+    try:
+        file_uuid = UUID(file_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File not found: {file_id}"
+        )
+
+    if file_uuid not in _uploaded_files:
         raise HTTPException(
             status_code=404,
             detail=f"File not found: {file_id}"
