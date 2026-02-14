@@ -12,7 +12,8 @@ from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile as FastAPIUploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.models.file import FileStatus, UploadFile
 from src.models.template import Template
@@ -37,15 +38,22 @@ app.add_middleware(
 )
 
 
+# Mount static files directory
+static_dir = Path(__file__).parent / "static"
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
 @app.get("/", tags=["Health"])
-async def root() -> dict[str, str]:
+async def root() -> FileResponse:
     """
-    Root health check endpoint.
+    Root endpoint - serves the upload page.
 
     Returns:
-        dict with status indicator
+        FileResponse with the HTML upload page
     """
-    return {"status": "ok"}
+    index_path = static_dir / "index.html"
+    return FileResponse(index_path)
 
 
 # In-memory storage for uploaded files (TODO: replace with database in Phase 9)
@@ -116,7 +124,7 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
             "file_id": str(upload_file.id),
             "filename": upload_file.filename,
             "size": upload_file.size,
-            "status": upload_file.status.value,
+            "status": upload_file.status,
         }
     )
 
@@ -157,7 +165,7 @@ async def list_files(
             "content_type": f.content_type,
             "size": f.size,
             "uploaded_at": f.uploaded_at.isoformat(),
-            "status": f.status.value,
+            "status": f.status,
         }
         for f in paginated_files
     ]
