@@ -5,6 +5,7 @@ This package contains all data models for the fill application.
 """
 
 from src.models.file import UploadFile, FileStatus
+from src.models.mapping import Mapping
 from src.models.template import Template
 
-__all__ = ["UploadFile", "FileStatus", "Template"]
+__all__ = ["UploadFile", "FileStatus", "Template", "Mapping"]
