@@ -9,7 +9,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import _uploaded_files
+from src.main import _uploaded_files, app
 from src.models.file import FileStatus
 
 
@@ -21,7 +21,7 @@ def client() -> TestClient:
     Returns:
         TestClient: FastAPI test client instance
     """
-    return TestClient(__import__("src.main").app)
+    return TestClient(app)
 
 
 @pytest.fixture(autouse=True)

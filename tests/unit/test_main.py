@@ -22,7 +22,7 @@ def client() -> TestClient:
 
 
 class TestRootEndpoint:
-    """Tests for the root health check endpoint."""
+    """Tests for the root endpoint (upload page)."""
 
     def test_root_returns_200(self, client: TestClient) -> None:
         """
@@ -34,25 +34,29 @@ class TestRootEndpoint:
         response = client.get("/")
         assert response.status_code == 200
 
-    def test_root_returns_status_ok(self, client: TestClient) -> None:
+    def test_root_returns_html(self, client: TestClient) -> None:
         """
-        Test that GET / returns JSON with status: ok.
+        Test that GET / returns HTML content (upload page).
 
         Args:
             client: FastAPI test client
         """
         response = client.get("/")
-        assert response.json() == {"status": "ok"}
+        assert response.headers["content-type"].startswith("text/html")
+        assert "<!DOCTYPE html>" in response.text
+        assert "Fill - 2D Table Data Auto-Filling" in response.text
 
-    def test_root_returns_content_type_json(self, client: TestClient) -> None:
+    def test_root_contains_upload_form(self, client: TestClient) -> None:
         """
-        Test that GET / returns JSON content type.
+        Test that GET / contains upload form elements.
 
         Args:
             client: FastAPI test client
         """
         response = client.get("/")
-        assert response.headers["content-type"] == "application/json"
+        assert 'id="fileInput"' in response.text
+        assert 'id="uploadBtn"' in response.text
+        assert 'id="message"' in response.text
 
 
 class TestAppConfiguration:
