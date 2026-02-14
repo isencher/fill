@@ -16,6 +16,11 @@ from src.services.placeholder_parser import (
     PlaceholderParser,
     get_placeholder_parser,
 )
+from src.services.template_filler import (
+    TemplateFiller,
+    TemplateFillerError,
+    fill_template,
+)
 from src.services.template_store import TemplateStore, get_template_store
 
 __all__ = [
@@ -28,6 +33,9 @@ __all__ = [
     "is_supported_file_type",
     "PlaceholderParser",
     "get_placeholder_parser",
+    "TemplateFiller",
+    "TemplateFillerError",
+    "fill_template",
     "TemplateStore",
     "get_template_store",
 ]
