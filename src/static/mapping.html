@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fill - Map Columns to Placeholders</title>
     <link rel="stylesheet" href="/static/components/progress.css">
+    <link rel="stylesheet" href="/static/components/empty-state.css">
     <style>
         * {
             margin: 0;
@@ -276,17 +277,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -357,17 +347,11 @@
             </div>
         </div>
 
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">⚠️</div>
-            <div id="emptyStateMessage">No file or template selected. Please select from the list first.</div>
-            <div style="margin-top: 20px;">
-                <a href="/" id="uploadLink" class="back-link" style="display: none;">← 返回上传数据</a>
-                <a href="/templates.html" id="templateLink" class="back-link" style="display: none;">← 返回选择模板</a>
-            </div>
-        </div>
+        <div id="emptyState" style="display: none;"></div>
     </div>
 
     <script src="/static/components/progress.js"></script>
+    <script src="/static/components/empty-state.js"></script>
     <script>
         // Initialize progress indicator for mapping page
         document.addEventListener('DOMContentLoaded', function() {

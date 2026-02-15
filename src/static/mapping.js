@@ -12,7 +12,6 @@ const templateId = urlParams.get('template_id');
 const loadingState = document.getElementById('loadingState');
 const contentArea = document.getElementById('contentArea');
 const emptyState = document.getElementById('emptyState');
-const emptyStateMessage = document.getElementById('emptyStateMessage');
 const fileName = document.getElementById('fileName');
 const fileIdEl = document.getElementById('fileId');
 const templateName = document.getElementById('templateName');
@@ -72,6 +71,91 @@ function showSection(section) {
         contentArea.style.display = 'block';
     } else if (section === 'empty') {
         emptyState.style.display = 'block';
+    }
+}
+
+// Show empty state with standardized component
+function showEmptyState(type, customMessage = null) {
+    const states = {
+        NO_FILE_OR_TEMPLATE: {
+            icon: '🔗',
+            title: 'Setup required',
+            message: '请先上传数据文件并选择模板',
+            variant: 'warning',
+            actions: [
+                {
+                    label: '← 返回上传数据',
+                    primary: true,
+                    onClick: () => { window.location.href = '/'; }
+                }
+            ]
+        },
+        NO_FILE: {
+            icon: '📁',
+            title: 'No data file',
+            message: '缺少数据文件。请先上传数据文件。',
+            variant: 'warning',
+            actions: [
+                {
+                    label: '← 返回上传数据',
+                    primary: true,
+                    onClick: () => { window.location.href = '/'; }
+                }
+            ]
+        },
+        NO_TEMPLATE: {
+            icon: '📄',
+            title: 'No template selected',
+            message: '缺少模板。请先选择模板。',
+            variant: 'warning',
+            actions: [
+                {
+                    label: '← 返回选择模板',
+                    primary: true,
+                    onClick: () => {
+                        const url = fileId ? `/templates.html?file_id=${encodeURIComponent(fileId)}` : '/templates.html';
+                        window.location.href = url;
+                    }
+                }
+            ]
+        },
+        ERROR_LOADING_FILE: {
+            icon: '❌',
+            title: 'Failed to load file',
+            message: 'Failed to load file data. Please try again or select a different file.',
+            variant: 'error',
+            actions: [
+                {
+                    label: '← 返回上传数据',
+                    primary: true,
+                    onClick: () => { window.location.href = '/'; }
+                }
+            ]
+        },
+        ERROR_LOADING_TEMPLATE: {
+            icon: '❌',
+            title: 'Failed to load template',
+            message: 'Failed to load template data. Please try again or select a different template.',
+            variant: 'error',
+            actions: [
+                {
+                    label: '← 返回选择模板',
+                    primary: true,
+                    onClick: () => {
+                        const url = fileId ? `/templates.html?file_id=${encodeURIComponent(fileId)}` : '/templates.html';
+                        window.location.href = url;
+                    }
+                }
+            ]
+        }
+    };
+
+    const state = states[type];
+    if (state) {
+        createEmptyState('emptyState', {
+            ...state,
+            message: customMessage || state.message
+        });
     }
 }
 
@@ -289,25 +373,19 @@ function cancel() {
 async function init() {
     // Validate parameters with helpful error messages
     if (!fileId && !templateId) {
-        emptyStateMessage.textContent = '请先上传数据文件并选择模板';
-        document.getElementById('uploadLink').style.display = 'inline-block';
+        showEmptyState('NO_FILE_OR_TEMPLATE');
         showSection('empty');
         return;
     }
     
     if (!fileId) {
-        emptyStateMessage.textContent = '缺少数据文件。请先上传数据文件。';
-        document.getElementById('uploadLink').style.display = 'inline-block';
+        showEmptyState('NO_FILE');
         showSection('empty');
         return;
     }
     
     if (!templateId) {
-        emptyStateMessage.textContent = '缺少模板。请先选择模板。';
-        // If we have file_id, link to template selection with file_id
-        const templateLink = document.getElementById('templateLink');
-        templateLink.href = '/templates.html?file_id=' + encodeURIComponent(fileId);
-        templateLink.style.display = 'inline-block';
+        showEmptyState('NO_TEMPLATE');
         showSection('empty');
         return;
     }
@@ -322,13 +400,13 @@ async function init() {
 
     // Check if data loaded successfully
     if (!fileResult) {
-        emptyStateMessage.textContent = 'Failed to load file data. Please try again or select a different file.';
+        showEmptyState('ERROR_LOADING_FILE');
         showSection('empty');
         return;
     }
 
     if (!templateResult) {
-        emptyStateMessage.textContent = 'Failed to load template data. Please try again or select a different template.';
+        showEmptyState('ERROR_LOADING_TEMPLATE');
         showSection('empty');
         return;
     }

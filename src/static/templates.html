@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fill - 选择模板</title>
     <link rel="stylesheet" href="/static/components/progress.css">
+    <link rel="stylesheet" href="/static/components/empty-state.css">
     <style>
         * {
             margin: 0;
@@ -292,12 +293,7 @@
             <div>加载模板列表...</div>
         </div>
 
-        <div id="errorState" class="error-state" style="display: none;">
-            <div class="error-icon">⚠️</div>
-            <div class="error-title">缺少数据文件</div>
-            <div class="error-message">请先上传数据文件，再选择模板</div>
-            <a href="/" class="back-btn">← 返回上传数据</a>
-        </div>
+        <div id="errorState" style="display: none;"></div>
 
         <div id="contentArea" class="content" style="display: none;">
             <div class="panel">
@@ -348,6 +344,7 @@
     </div>
 
     <script src="/static/components/progress.js"></script>
+    <script src="/static/components/empty-state.js"></script>
     <script>
         // Initialize progress indicator for template page
         document.addEventListener('DOMContentLoaded', function() {

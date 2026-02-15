@@ -57,6 +57,23 @@ function showError() {
     loadingState.style.display = 'none';
     errorState.style.display = 'block';
     contentArea.style.display = 'none';
+
+    // Use the standardized empty state component
+    createEmptyState('errorState', {
+        icon: '⚠️',
+        title: '缺少数据文件',
+        message: '请先上传数据文件，再选择模板',
+        variant: 'warning',
+        actions: [
+            {
+                label: '← 返回上传数据',
+                primary: true,
+                onClick: () => {
+                    window.location.href = '/';
+                }
+            }
+        ]
+    });
 }
 
 function showContent() {
