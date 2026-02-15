@@ -35,6 +35,11 @@ from src.services.batch_processor import (
     BatchProcessorError,
     process_batch,
 )
+from src.services.excel_template_filler import (
+    ExcelTemplateFiller,
+    ExcelTemplateFillerError,
+    fill_excel_template,
+)
 
 try:
     from src.services.docx_generator import (
@@ -72,6 +77,9 @@ __all__ = [
     "BatchProcessor",
     "BatchProcessorError",
     "process_batch",
+    "ExcelTemplateFiller",
+    "ExcelTemplateFillerError",
+    "fill_excel_template",
     "DocxGenerator",
     "DocxGeneratorError",
     "generate_docx_from_data",

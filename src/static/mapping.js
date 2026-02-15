@@ -24,6 +24,28 @@ const saveMappingBtn = document.getElementById('saveMappingBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const message = document.getElementById('message');
 
+// Built-in templates (same as templates.js)
+const BUILT_IN_TEMPLATES = {
+    "builtin-invoice": {
+        id: "builtin-invoice",
+        name: "🧾 发票模板",
+        description: "标准发票模板",
+        placeholders: ["客户名称", "金额", "日期", "发票号码"]
+    },
+    "builtin-contract": {
+        id: "builtin-contract",
+        name: "📋 合同模板",
+        description: "标准合同模板",
+        placeholders: ["甲方", "乙方", "金额", "日期", "合同编号"]
+    },
+    "builtin-letter": {
+        id: "builtin-letter",
+        name: "✉️ 信函模板",
+        description: "正式信函模板",
+        placeholders: ["收件人", "主题", "日期", "发件人"]
+    }
+};
+
 // Data storage
 let fileData = null;
 let templateData = null;
@@ -73,7 +95,7 @@ async function loadFileData() {
         // Update file info
         const fileResponse = await fetch(`/api/v1/files?limit=1000`);
         const fileDataList = await fileResponse.json();
-        const fileInfo = fileDataList.files.find(f => f.id === fileId);
+        const fileInfo = fileDataList.files.find(f => f.file_id === fileId);
         if (fileInfo) {
             fileName.textContent = fileInfo.filename;
             fileIdEl.textContent = fileId;
@@ -90,6 +112,15 @@ async function loadFileData() {
 // Load template data
 async function loadTemplateData() {
     try {
+        // Check if it's a built-in template first
+        if (BUILT_IN_TEMPLATES[templateId]) {
+            templateData = BUILT_IN_TEMPLATES[templateId];
+            templateName.textContent = templateData.name;
+            templateIdEl.textContent = templateId;
+            return templateData;
+        }
+        
+        // Otherwise fetch from server
         const response = await fetch(`/api/v1/templates/${templateId}`);
         if (!response.ok) {
             throw new Error('Failed to load template');
@@ -256,9 +287,27 @@ function cancel() {
 
 // Initialize page
 async function init() {
-    // Validate parameters
-    if (!fileId || !templateId) {
-        emptyStateMessage.textContent = 'Missing required parameters. Please provide both file_id and template_id.';
+    // Validate parameters with helpful error messages
+    if (!fileId && !templateId) {
+        emptyStateMessage.textContent = '请先上传数据文件并选择模板';
+        document.getElementById('uploadLink').style.display = 'inline-block';
+        showSection('empty');
+        return;
+    }
+    
+    if (!fileId) {
+        emptyStateMessage.textContent = '缺少数据文件。请先上传数据文件。';
+        document.getElementById('uploadLink').style.display = 'inline-block';
+        showSection('empty');
+        return;
+    }
+    
+    if (!templateId) {
+        emptyStateMessage.textContent = '缺少模板。请先选择模板。';
+        // If we have file_id, link to template selection with file_id
+        const templateLink = document.getElementById('templateLink');
+        templateLink.href = '/templates.html?file_id=' + encodeURIComponent(fileId);
+        templateLink.style.display = 'inline-block';
         showSection('empty');
         return;
     }

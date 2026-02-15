@@ -10,7 +10,7 @@ from uuid import UUID
 
 from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile as FastAPIUploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile as FastAPIUploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -259,6 +259,228 @@ async def create_template(
             status_code=400,
             detail=str(e)
         )
+
+
+# Template Upload Endpoint
+from src.services.placeholder_parser import PlaceholderParser
+
+@app.post("/api/v1/templates/upload", tags=["Templates"], status_code=201)
+async def upload_template(
+    file: FastAPIUploadFile = File(...),
+    name: str = Form(...),
+    description: Optional[str] = Form(None),
+) -> JSONResponse:
+    """
+    Upload a template file and automatically extract placeholders.
+    
+    Args:
+        file: Template file (.docx or .txt)
+        name: Template name
+        description: Optional template description
+        
+    Returns:
+        JSONResponse with created template and extracted placeholders
+        
+    Raises:
+        HTTPException: 400 if file type is invalid
+    """
+    # Validate file extension - now supports xlsx templates too
+    if not (file.filename or "").lower().endswith((".docx", ".txt", ".xlsx")):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Only .docx, .txt and .xlsx files are supported."
+        )
+    
+    # Read file content
+    file_content = await file.read()
+    
+    # Save template file
+    temp_dir = Path(tempfile.gettempdir()) / "fill" / "templates"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    
+    safe_filename = Path(file.filename).name
+    template_path = temp_dir / safe_filename
+    
+    with open(template_path, "wb") as f:
+        f.write(file_content)
+    
+    # Extract placeholders
+    try:
+        parser = PlaceholderParser()
+        
+        if file.filename.lower().endswith(".docx"):
+            placeholders = parser.extract_from_docx(template_path)
+        elif file.filename.lower().endswith(".xlsx"):
+            # Excel template - placeholders are in first sheet as markers
+            # e.g., cell contains "{{订单号}}"
+            import openpyxl
+            wb = openpyxl.load_workbook(str(template_path))
+            ws = wb.active
+            
+            placeholders = []
+            # Scan all cells for {{placeholder}} pattern
+            for row in ws.iter_rows():
+                for cell in row:
+                    if cell.value and isinstance(cell.value, str):
+                        cell_placeholders = parser.extract_from_text(cell.value)
+                        placeholders.extend(cell_placeholders)
+            
+            unique_placeholders = list(dict.fromkeys(placeholders))  # Preserve order, remove duplicates
+        else:
+            # Text file
+            content = file_content.decode("utf-8", errors="ignore")
+            placeholders = parser.extract_from_text(content)
+            unique_placeholders = parser.extract_unique_from_text(
+                " ".join([f"{{{{{p}}}}}" for p in placeholders])
+            )
+    except Exception:
+        # If extraction fails, use empty list
+        unique_placeholders = []
+    
+    # Create template
+    template = Template(
+        name=name,
+        file_path=str(template_path),
+        description=description,
+        placeholders=unique_placeholders,
+    )
+    
+    # Save to store
+    saved = _template_store.save_template(template)
+    
+    return JSONResponse(
+        status_code=201,
+        content={
+            "message": "Template uploaded successfully",
+            "template": {
+                "id": saved.id,
+                "name": saved.name,
+                "description": saved.description,
+                "placeholders": saved.placeholders,
+                "file_path": saved.file_path,
+                "created_at": saved.created_at.isoformat(),
+            },
+            "extracted_placeholders": unique_placeholders,
+        }
+    )
+
+
+# Smart Mapping Suggestion Endpoint
+from src.services.fuzzy_matcher import FuzzyMatcher
+
+@app.post("/api/v1/mappings/suggest", tags=["Mappings"])
+async def suggest_mapping(
+    file_id: str = Query(..., description="ID of uploaded data file"),
+    template_id: str = Query(..., description="ID of template"),
+) -> JSONResponse:
+    """
+    Suggest column-to-placeholder mappings based on fuzzy matching.
+    
+    Args:
+        file_id: ID of uploaded data file
+        template_id: ID of template
+        
+    Returns:
+        JSONResponse with suggested mappings and confidence scores
+        
+    Raises:
+        HTTPException: 404 if file or template not found
+    """
+    # Validate file exists
+    try:
+        file_uuid = UUID(file_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+    
+    if file_uuid not in _uploaded_files:
+        raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+    
+    # Validate template exists
+    template = _template_store.get_template(template_id)
+    if template is None:
+        raise HTTPException(status_code=404, detail=f"Template not found: {template_id}")
+    
+    # Parse file to get column names
+    upload_file = _uploaded_files[file_uuid]
+    file_content = _uploaded_file_contents.get(file_uuid)
+    
+    if not file_content:
+        raise HTTPException(status_code=404, detail=f"File content not found: {file_id}")
+    
+    try:
+        from src.services.parser_factory import get_parser
+        
+        # Save to temp file for parsing
+        temp_dir = Path(tempfile.gettempdir()) / "fill" / "parse"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        temp_path = temp_dir / f"{file_id}_{upload_file.filename}"
+        
+        with open(temp_path, "wb") as f:
+            f.write(file_content)
+        
+        # Parse file
+        parser_class = get_parser(upload_file.filename)
+        parser = parser_class()
+        
+        extension = upload_file.filename.lower().split(".")[-1]
+        if extension == "csv":
+            rows = parser.parse_csv(temp_path)
+        else:
+            rows = parser.parse_excel(temp_path)
+        
+        # Get column names from first row
+        columns = list(rows[0].keys()) if rows else []
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
+    
+    # Use FuzzyMatcher for suggestions
+    matcher = FuzzyMatcher()
+    template_placeholders = template.placeholders or []
+    
+    suggestions = matcher.suggest_mappings(template_placeholders, columns)
+    overall_confidence = matcher.calculate_overall_confidence(suggestions)
+    
+    # Check for unmapped items
+    mapped_columns = [s["suggested_column"] for s in suggestions if s["suggested_column"]]
+    unmapped_columns = [c for c in columns if c not in mapped_columns]
+    
+    return JSONResponse(
+        status_code=200,
+        content={
+            "suggested_mappings": suggestions,
+            "confidence": round(overall_confidence, 2),
+            "can_auto_fill": overall_confidence >= 0.8,
+            "unmapped_columns": unmapped_columns,
+            "unmapped_placeholders": [s["placeholder"] for s in suggestions if not s["suggested_column"]],
+        }
+    )
+
+
+# Serve templates.html
+@app.get("/templates.html", tags=["Frontend"])
+async def templates_page() -> FileResponse:
+    """
+    Template selection page - serves template selection interface.
+    
+    Returns:
+        FileResponse with HTML template selection page
+    """
+    templates_path = static_dir / "templates.html"
+    return FileResponse(templates_path)
+
+
+# Serve mapping.html
+@app.get("/mapping.html", tags=["Frontend"])
+async def mapping_html_page() -> FileResponse:
+    """
+    Mapping page - serves column-to-placeholder mapping interface.
+    
+    Returns:
+        FileResponse with HTML mapping page
+    """
+    mapping_path = static_dir / "mapping.html"
+    return FileResponse(mapping_path)
 
 
 @app.get("/api/v1/templates", tags=["Templates"])

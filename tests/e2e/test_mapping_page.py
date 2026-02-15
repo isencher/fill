@@ -183,8 +183,8 @@ class TestMappingPage:
         response = client.get("/mapping?file_id=test&template_id=test")
         content = response.text
 
-        # Check for JavaScript include
-        assert 'src="mapping.js"' in content
+        # Check for JavaScript include (with /static/ prefix)
+        assert 'src="/static/mapping.js"' in content
 
 
 class TestParseFileEndpoint:

@@ -113,13 +113,11 @@ async function uploadFile() {
         xhr.addEventListener('load', () => {
             if (xhr.status === 201) {
                 const response = JSON.parse(xhr.responseText);
-                showMessage(`File uploaded successfully! File ID: ${response.file_id}`, 'success');
+                showMessage(`✅ File uploaded successfully!`, 'success');
                 updateProgress(100);
 
-                // Reset form after 2 seconds
-                setTimeout(() => {
-                    resetForm();
-                }, 2000);
+                // Show next step button instead of resetting
+                showNextStep(response.file_id);
             } else if (xhr.status === 413) {
                 showMessage('File too large. Maximum size is 10MB.', 'error');
                 uploadBtn.disabled = false;
@@ -146,6 +144,33 @@ async function uploadFile() {
     }
 }
 
+// Show next step after successful upload
+function showNextStep(fileId) {
+    // Change upload button to "Select Template" button (not mapping directly)
+    uploadBtn.textContent = '📋 选择模板 →';
+    uploadBtn.disabled = false;
+    uploadBtn.onclick = () => {
+        // FIX: Redirect to template selection page, not mapping page
+        // mapping.html requires both file_id AND template_id
+        window.location.href = '/templates.html?file_id=' + encodeURIComponent(fileId);
+    };
+    
+    // Add a secondary button to upload another file
+    const uploadAnotherBtn = document.createElement('button');
+    uploadAnotherBtn.className = 'btn';
+    uploadAnotherBtn.style.cssText = 'margin-top: 10px; background: #f0f2ff; color: #667eea;';
+    uploadAnotherBtn.textContent = '📁 Upload Another File';
+    uploadAnotherBtn.onclick = () => {
+        resetForm();
+        uploadBtn.textContent = 'Upload File';
+        uploadBtn.onclick = uploadFile;
+        uploadAnotherBtn.remove();
+    };
+    
+    // Insert after upload button
+    uploadBtn.parentNode.insertBefore(uploadAnotherBtn, uploadBtn.nextSibling);
+}
+
 // Reset form
 function resetForm() {
     selectedFile = null;
@@ -156,6 +181,8 @@ function resetForm() {
     progressText.textContent = '0%';
     message.className = 'message';
     uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Upload File';
+    uploadBtn.onclick = uploadFile;
 }
 
 // Event Listeners

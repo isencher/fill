@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fill - 2D Table Data Auto-Filling</title>
+    <link rel="stylesheet" href="/static/components/progress.css">
     <style>
         * {
             margin: 0;
@@ -193,6 +194,7 @@
     </style>
 </head>
 <body>
+    <div id="progressContainer"></div>
     <div class="container">
         <h1>Fill</h1>
         <p class="subtitle">2D Table Data Auto-Filling Web Application</p>
@@ -222,6 +224,26 @@
         <div class="message" id="message"></div>
     </div>
 
-    <script src="upload.js"></script>
+    <script src="/static/components/progress.js"></script>
+    <script>
+        // Initialize progress indicator for upload page
+        document.addEventListener('DOMContentLoaded', function() {
+            const progress = initProgressIndicator({
+                currentStep: 'upload',
+                completedSteps: []
+            });
+
+            // Optionally make completed steps clickable
+            const steps = document.querySelectorAll('.progress-step.completed');
+            steps.forEach(step => {
+                step.classList.add('clickable');
+                step.addEventListener('click', () => {
+                    const stepId = step.dataset.step;
+                    progress.navigateToStep(stepId);
+                });
+            });
+        });
+    </script>
+    <script src="/static/upload.js"></script>
 </body>
 </html>

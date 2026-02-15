@@ -116,8 +116,8 @@ class TestUploadPage:
         response = client.get("/")
         content = response.text
 
-        # Verify JavaScript source is included
-        assert '<script src="upload.js"></script>' in content
+        # Verify JavaScript source is included (with /static/ prefix)
+        assert 'src="/static/upload.js"' in content
 
     def test_javascript_file_served(self, client: TestClient) -> None:
         """
