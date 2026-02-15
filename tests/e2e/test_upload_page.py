@@ -279,3 +279,73 @@ class TestUploadPage:
 
         # Check for labels or readable text
         assert "Drop your file here" in content or "click to browse" in content
+
+    def test_upload_page_has_data_preview_section(self, client: TestClient) -> None:
+        """
+        Test that the upload page has a data preview section.
+
+        Args:
+            client: FastAPI test client
+        """
+        response = client.get("/")
+        content = response.text
+
+        # Check for data preview container
+        assert 'id="dataPreview"' in content
+
+    def test_upload_page_has_preview_stats(self, client: TestClient) -> None:
+        """
+        Test that the data preview section includes stats display.
+
+        Args:
+            client: FastAPI test client
+        """
+        response = client.get("/")
+        content = response.text
+
+        # Check for preview stats elements
+        assert 'previewRowCount' in content
+        assert 'previewColCount' in content
+
+    def test_upload_page_has_preview_table(self, client: TestClient) -> None:
+        """
+        Test that the data preview section includes a table.
+
+        Args:
+            client: FastAPI test client
+        """
+        response = client.get("/")
+        content = response.text
+
+        # Check for preview table
+        assert 'id="previewTable"' in content
+
+    def test_upload_page_has_preview_toggle(self, client: TestClient) -> None:
+        """
+        Test that the data preview section has a toggle button.
+
+        Args:
+            client: FastAPI test client
+        """
+        response = client.get("/")
+        content = response.text
+
+        # Check for preview toggle button
+        assert 'id="previewToggle"' in content
+        assert 'previewToggleIcon' in content
+
+    def test_upload_page_preview_css_is_styled(self, client: TestClient) -> None:
+        """
+        Test that the data preview section has proper CSS styling.
+
+        Args:
+            client: FastAPI test client
+        """
+        response = client.get("/")
+        content = response.text
+
+        # Check for preview-related CSS classes
+        assert '.data-preview' in content
+        assert '.preview-header' in content
+        assert '.preview-table' in content
+        assert '.preview-stats' in content

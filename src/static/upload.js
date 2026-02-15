@@ -145,7 +145,10 @@ async function uploadFile() {
 }
 
 // Show next step after successful upload
-function showNextStep(fileId) {
+async function showNextStep(fileId) {
+    // Show data preview
+    await loadDataPreview(fileId);
+
     // Change upload button to "Select Template" button (not mapping directly)
     uploadBtn.textContent = '📋 选择模板 →';
     uploadBtn.disabled = false;
@@ -154,7 +157,7 @@ function showNextStep(fileId) {
         // mapping.html requires both file_id AND template_id
         window.location.href = '/templates.html?file_id=' + encodeURIComponent(fileId);
     };
-    
+
     // Add a secondary button to upload another file
     const uploadAnotherBtn = document.createElement('button');
     uploadAnotherBtn.className = 'btn';
@@ -166,9 +169,90 @@ function showNextStep(fileId) {
         uploadBtn.onclick = uploadFile;
         uploadAnotherBtn.remove();
     };
-    
+
     // Insert after upload button
     uploadBtn.parentNode.insertBefore(uploadAnotherBtn, uploadBtn.nextSibling);
+}
+
+// Load and display data preview
+async function loadDataPreview(fileId) {
+    const dataPreview = document.getElementById('dataPreview');
+    const previewContent = document.getElementById('previewContent');
+    const previewTable = document.getElementById('previewTable');
+    const previewRowCount = document.getElementById('previewRowCount');
+    const previewColCount = document.getElementById('previewColCount');
+    const previewToggle = document.getElementById('previewToggle');
+    const previewToggleIcon = document.getElementById('previewToggleIcon');
+
+    if (!dataPreview) return;
+
+    // Show preview container
+    dataPreview.style.display = 'block';
+
+    // Show loading state
+    previewTable.innerHTML = '<div class="preview-loading">Loading preview...</div>';
+
+    // Toggle expand/collapse
+    let isExpanded = true;
+    previewToggle.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        previewContent.style.display = isExpanded ? 'block' : 'none';
+        previewToggleIcon.textContent = isExpanded ? '▼' : '▶';
+    });
+
+    try {
+        // Fetch parsed data from server
+        const response = await fetch(`/api/v1/parse/${fileId}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to load preview');
+        }
+
+        const data = await response.json();
+
+        // Check if data has rows
+        if (!data.rows || data.rows.length === 0) {
+            previewTable.innerHTML = '<div class="preview-error">No data available in file</div>';
+            return;
+        }
+
+        // Update stats
+        previewRowCount.textContent = data.rows.length;
+        const columns = Object.keys(data.rows[0]);
+        previewColCount.textContent = columns.length;
+
+        // Build preview table (max 5 rows)
+        const previewRows = data.rows.slice(0, 5);
+
+        let tableHtml = '<table><thead><tr>';
+        columns.forEach(col => {
+            tableHtml += `<th>${escapeHtml(col)}</th>`;
+        });
+        tableHtml += '</tr></thead><tbody>';
+
+        previewRows.forEach(row => {
+            tableHtml += '<tr>';
+            columns.forEach(col => {
+                const value = row[col];
+                tableHtml += `<td>${escapeHtml(value !== null && value !== undefined ? String(value) : '')}</td>`;
+            });
+            tableHtml += '</tr>';
+        });
+
+        tableHtml += '</tbody></table>';
+        previewTable.innerHTML = tableHtml;
+
+    } catch (error) {
+        console.error('Error loading preview:', error);
+        previewTable.innerHTML = `<div class="preview-error">Failed to load preview: ${error.message}</div>`;
+    }
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Reset form
@@ -180,6 +264,13 @@ function resetForm() {
     progressFill.style.width = '0%';
     progressText.textContent = '0%';
     message.className = 'message';
+
+    // Hide data preview
+    const dataPreview = document.getElementById('dataPreview');
+    if (dataPreview) {
+        dataPreview.style.display = 'none';
+    }
+
     uploadBtn.disabled = true;
     uploadBtn.textContent = 'Upload File';
     uploadBtn.onclick = uploadFile;
