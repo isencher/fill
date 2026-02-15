@@ -174,10 +174,64 @@ async function loadTemplates() {
     }
 }
 
+// Convert placeholder names to readable business language
+function getPlaceholderDescription(placeholders) {
+    if (!placeholders || placeholders.length === 0) {
+        return 'Basic template';
+    }
+
+    // Map of common placeholder keywords to business terms
+    const keywordMap = {
+        'name': '名称',
+        'customer': '客户',
+        'client': '客户',
+        'amount': '金额',
+        'money': '金额',
+        'price': '价格',
+        'date': '日期',
+        'time': '时间',
+        'number': '编号',
+        'id': '编号',
+        'invoice': '发票',
+        'contract': '合同',
+        'address': '地址',
+        'email': '邮箱',
+        'phone': '电话',
+        'company': '公司',
+        'product': '产品',
+        'quantity': '数量'
+    };
+
+    // Extract keywords from placeholders
+    const keywords = new Set();
+    placeholders.forEach(p => {
+        const lower = p.toLowerCase();
+        for (const [key, value] of Object.entries(keywordMap)) {
+            if (lower.includes(key)) {
+                keywords.add(value);
+            }
+        }
+    });
+
+    // If no keywords found, use placeholder names directly
+    if (keywords.size === 0) {
+        const count = placeholders.length;
+        const firstFew = placeholders.slice(0, 3).join('、');
+        return count > 3
+            ? `Includes: ${firstFew} 等 ${count} 项`
+            : `Includes: ${firstFew}`;
+    }
+
+    // Convert to readable format
+    const readable = Array.from(keywords).slice(0, 4).join('、');
+    const count = keywords.size;
+    return count > 4 ? `Includes: ${readable} 等 ${count} 项` : `Includes: ${readable}`;
+}
+
 // Render template cards
 function renderTemplates(templates) {
     templateGrid.innerHTML = '';
-    
+
     // If no templates, show message
     if (templates.length === 0) {
         templateGrid.innerHTML = `
@@ -188,52 +242,85 @@ function renderTemplates(templates) {
         `;
         return;
     }
-    
+
     templates.forEach(template => {
         const card = document.createElement('div');
         card.className = 'template-card';
         card.setAttribute('data-testid', 'template-card');
         card.dataset.templateId = template.id;
-        
+
         // Icon based on template name
         let icon = '📄';
         if (template.name.includes('发票')) icon = '🧾';
         else if (template.name.includes('合同')) icon = '📋';
         else if (template.name.includes('信')) icon = '✉️';
-        
-        // Placeholders tags
-        const placeholderTags = (template.placeholders || [])
-            .slice(0, 4)
-            .map(p => `<span class="placeholder-tag">{{${p}}}</span>`)
-            .join('');
-        
-        const moreCount = (template.placeholders || []).length - 4;
-        const moreTag = moreCount > 0 ? `<span class="placeholder-tag">+${moreCount}</span>` : '';
-        
+
+        // Get readable placeholder description
+        const placeholderDescription = getPlaceholderDescription(template.placeholders);
+
+        // Check if template has many placeholders (for "View Details" feature)
+        const hasManyPlaceholders = (template.placeholders || []).length > 4;
+        const placeholderCount = (template.placeholders || []).length;
+
         card.innerHTML = `
             <div class="template-icon">${icon}</div>
             <div class="template-name">${escapeHtml(template.name)}</div>
             <div class="template-description">${escapeHtml(template.description || '')}</div>
-            <div class="template-placeholders">
-                ${placeholderTags}${moreTag}
+            <div class="template-summary">
+                <span class="template-summary-icon">📋</span>
+                <span class="template-summary-text">${placeholderDescription}</span>
+                ${hasManyPlaceholders ? `<span class="template-summary-count">(${placeholderCount} 项)</span>` : ''}
             </div>
-            <button class="use-template-btn" data-testid="use-template-btn">
-                使用此模板
+            ${hasManyPlaceholders ? `
+                <button class="view-details-btn" data-template-id="${template.id}" data-testid="view-details-btn">
+                    查看详情 ▼
+                </button>
+                <div class="template-details" data-details-for="${template.id}" style="display: none;">
+                    <div class="template-details-title">数据字段：</div>
+                    <div class="template-details-list">
+                        ${(template.placeholders || []).map(p =>
+                            `<code class="placeholder-code">{{${escapeHtml(p)}}}</code>`
+                        ).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            <button class="use-template-btn btn-primary" data-testid="use-template-btn">
+                选择此模板 →
             </button>
         `;
-        
+
         // Click to select
         card.addEventListener('click', (e) => {
-            if (e.target.classList.contains('use-template-btn')) {
-                selectTemplate(template.id);
-            } else {
-                // Toggle selection visual
+            // Handle "View Details" button
+            if (e.target.classList.contains('view-details-btn')) {
+                e.stopPropagation();
+                const detailsDiv = card.querySelector(`.template-details[data-details-for="${template.id}"]`);
+                const btn = e.target;
+
+                if (detailsDiv.style.display === 'none') {
+                    detailsDiv.style.display = 'block';
+                    btn.textContent = '收起详情 ▲';
+                } else {
+                    detailsDiv.style.display = 'none';
+                    btn.textContent = '查看详情 ▼';
+                }
+                return;
+            }
+
+            // Handle "Use Template" button or card click
+            if (e.target.classList.contains('use-template-btn') || !e.target.classList.contains('view-details-btn')) {
+                // Remove selected class from all cards
                 document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+
+                // Add selected class to this card
                 card.classList.add('selected');
                 selectedTemplate = template.id;
+
+                // Navigate to mapping page
+                selectTemplate(template.id);
             }
         });
-        
+
         templateGrid.appendChild(card);
     });
 }
