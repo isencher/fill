@@ -50,13 +50,20 @@ let fileData = null;
 let templateData = null;
 let columns = [];
 
-// Show message
+// Show message with animation
 function showMessage(text, type) {
-    message.textContent = text;
-    message.className = `message show ${type}`;
-    setTimeout(() => {
-        message.className = 'message';
-    }, 5000);
+    // Use the animation helper if available
+    if (typeof animateMessage === 'function') {
+        animateMessage(message, type);
+        message.textContent = text;
+    } else {
+        // Fallback to original behavior
+        message.textContent = text;
+        message.className = `message show ${type}`;
+        setTimeout(() => {
+            message.className = 'message';
+        }, 5000);
+    }
 }
 
 // Show/hide sections
@@ -280,6 +287,13 @@ function renderPlaceholdersList(template) {
         select.className = 'placeholder-select';
         select.dataset.placeholder = placeholder;
 
+        // Add change event listener for animation
+        select.addEventListener('change', () => {
+            if (typeof animateSelectChange === 'function') {
+                animateSelectChange(select);
+            }
+        });
+
         // Add empty option
         const emptyOption = document.createElement('option');
         emptyOption.value = '';
@@ -332,7 +346,12 @@ async function saveMapping() {
             column_mappings: columnMappings
         };
 
-        saveMappingBtn.disabled = true;
+        // Set button to loading state
+        if (typeof setButtonLoading === 'function') {
+            setButtonLoading(saveMappingBtn, true);
+        } else {
+            saveMappingBtn.disabled = true;
+        }
 
         const response = await fetch('/api/v1/mappings', {
             method: 'POST',
@@ -350,6 +369,14 @@ async function saveMapping() {
         const result = await response.json();
         showMessage(`Mapping saved successfully! Mapping ID: ${result.id}`, 'success');
 
+        // Show button success animation
+        if (typeof setButtonLoading === 'function') {
+            setButtonLoading(saveMappingBtn, false);
+        }
+        if (typeof setButtonSuccess === 'function') {
+            setButtonSuccess(saveMappingBtn);
+        }
+
         // Redirect after 2 seconds
         setTimeout(() => {
             window.location.href = '/';
@@ -358,7 +385,11 @@ async function saveMapping() {
     } catch (error) {
         console.error('Error saving mapping:', error);
         showMessage('Failed to save mapping: ' + error.message, 'error');
-        saveMappingBtn.disabled = false;
+        if (typeof setButtonLoading === 'function') {
+            setButtonLoading(saveMappingBtn, false);
+        } else {
+            saveMappingBtn.disabled = false;
+        }
     }
 }
 

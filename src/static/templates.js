@@ -51,6 +51,15 @@ function showLoading() {
     loadingState.style.display = 'block';
     errorState.style.display = 'none';
     contentArea.style.display = 'none';
+
+    // Show skeleton loader for template list
+    if (typeof showSkeleton === 'function') {
+        showSkeleton('templateGrid', {
+            type: 'card',
+            count: 6,
+            animate: true
+        });
+    }
 }
 
 function showError() {
