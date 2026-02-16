@@ -418,7 +418,9 @@ async function autoMatchFields() {
         autoMatchBtn.innerHTML = '<span class="icon">⏳</span><span>Finding matches...</span>';
 
         // Call suggest API
-        const response = await fetch(`/api/v1/mappings/suggest?file_id=${encodeURIComponent(fileId)}&template_id=${encodeURIComponent(templateId)}`);
+        const response = await fetch(`/api/v1/mappings/suggest?file_id=${encodeURIComponent(fileId)}&template_id=${encodeURIComponent(templateId)}`, {
+            method: 'POST'
+        });
 
         if (!response.ok) {
             throw new Error('Failed to get suggestions');
@@ -468,25 +470,19 @@ async function saveMapping() {
             const column = select.value;
 
             if (column) {
-                columnMappings[placeholder] = column;
+                columnMappings[column] = placeholder;  // Format: {column_name: placeholder_name}
             }
         });
 
         // Validate all placeholders are mapped
         const templatePlaceholders = templateData.placeholders || [];
-        const unmapped = templatePlaceholders.filter(p => !columnMappings[p]);
+        const mappedPlaceholders = Object.values(columnMappings);
+        const unmapped = templatePlaceholders.filter(p => !mappedPlaceholders.includes(p));
 
         if (unmapped.length > 0) {
             showMessage(`Please map all placeholders. Unmapped: ${unmapped.join(', ')}`, 'error');
             return;
         }
-
-        // Create mapping
-        const mappingData = {
-            file_id: fileId,
-            template_id: templateId,
-            column_mappings: columnMappings
-        };
 
         // Set button to loading state
         if (typeof setButtonLoading === 'function') {
@@ -495,17 +491,37 @@ async function saveMapping() {
             saveMappingBtn.disabled = true;
         }
 
-        const response = await fetch('/api/v1/mappings', {
+        // Send mapping to API
+        // file_id and template_id as Query params, column_mappings as Body
+        const queryParams = new URLSearchParams();
+        queryParams.append('file_id', fileId);
+        queryParams.append('template_id', templateId);
+
+        const response = await fetch(`/api/v1/mappings?${queryParams.toString()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(mappingData)
+            body: JSON.stringify(columnMappings)
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Failed to save mapping');
+            // Handle different error response formats
+            // FastAPI validation errors: {detail: [{loc, msg, type}, ...]}
+            // Custom errors: {detail: "error message"}
+            let errorMessage = 'Failed to save mapping';
+            if (error.detail) {
+                if (Array.isArray(error.detail)) {
+                    // Pydantic validation error - extract messages
+                    errorMessage = error.detail.map(e => e.msg || String(e)).join('; ');
+                } else if (typeof error.detail === 'string') {
+                    errorMessage = error.detail;
+                } else {
+                    errorMessage = String(error.detail);
+                }
+            }
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();

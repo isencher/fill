@@ -14,7 +14,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import _mappings_storage, _file_storage, _uploaded_file_contents, app
+from src.main import _file_storage, app
 from src.models.file import FileStatus, UploadFile
 from src.models.template import Template
 from src.services.template_store import get_template_store
@@ -36,8 +36,6 @@ def clear_storage() -> None:
     """Clear in-memory storage after each test."""
     yield
     _file_storage.clear()
-    _uploaded_file_contents.clear()
-    _mappings_storage.clear()
 
 
 @pytest.fixture

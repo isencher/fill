@@ -5,11 +5,13 @@ Parses Excel (.xlsx) files into structured data (list of dictionaries).
 Uses openpyxl library for reading Excel files.
 """
 
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
+from zipfile import BadZipFile
 
 
 class ExcelParser:
@@ -21,6 +23,44 @@ class ExcelParser:
     """
 
     DEFAULT_SHEET_NAME = "Sheet1"
+
+    @staticmethod
+    def _try_parse_date_string(value: str) -> date | None:
+        """
+        Try to parse a string value as a date.
+
+        Handles common Excel date formats:
+        - YYYY-MM-DD HH:MM:SS
+        - YYYY-MM-DD
+        - DD/MM/YYYY
+        - MM/DD/YYYY
+
+        Args:
+            value: String value to parse
+
+        Returns:
+            datetime.date object if successful, None otherwise
+        """
+        if not isinstance(value, str):
+            return None
+
+        # Try common date formats
+        date_formats = [
+            "%Y-%m-%d %H:%M:%S",  # Excel datetime format
+            "%Y-%m-%d",           # ISO date
+            "%d/%m/%Y",           # European format
+            "%m/%d/%Y",           # US format
+            "%Y-%m-%dT%H:%M:%S",  # ISO datetime
+        ]
+
+        for fmt in date_formats:
+            try:
+                dt = datetime.strptime(value, fmt)
+                return dt.date()
+            except ValueError:
+                continue
+
+        return None
 
     @staticmethod
     def parse_excel(
@@ -63,6 +103,8 @@ class ExcelParser:
         # Load workbook
         try:
             workbook = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
+        except BadZipFile:
+            raise InvalidFileException(f"Invalid Excel file: not a valid .xlsx file")
         except InvalidFileException as e:
             raise InvalidFileException(f"Invalid Excel file: {e}") from e
         except Exception as e:
@@ -83,14 +125,18 @@ class ExcelParser:
 
         # Extract headers from first row
         headers: list[str] = []
-        for cell in sheet[1]:
-            value = cell.value
-            if value is None:
-                headers.append("")  # Empty header
-            elif isinstance(value, str):
-                headers.append(value.strip())
-            else:
-                headers.append(str(value))
+        try:
+            for cell in sheet[1]:
+                value = cell.value
+                if value is None:
+                    headers.append("")  # Empty header
+                elif isinstance(value, str):
+                    headers.append(value.strip())
+                else:
+                    headers.append(str(value))
+        except IndexError:
+            # Sheet is completely empty (no rows)
+            raise ValueError("Sheet has no headers (first row is empty)")
 
         # Validate headers
         if not any(headers):
@@ -111,8 +157,23 @@ class ExcelParser:
                 # Handle different cell value types
                 if value is None:
                     processed_value = ""
-                elif isinstance(value, (int, float, str, bool)):
+                elif isinstance(value, bool):
+                    # Boolean values (must check before int, as bool is subclass of int)
                     processed_value = value
+                elif isinstance(value, int):
+                    processed_value = value
+                elif isinstance(value, float):
+                    processed_value = value
+                elif isinstance(value, datetime):
+                    # Excel datetime objects - convert to date
+                    processed_value = value.date()
+                elif isinstance(value, date):
+                    # Already a date object
+                    processed_value = value
+                elif isinstance(value, str):
+                    # Try to parse as date first (Excel dates can come as strings)
+                    date_value = ExcelParser._try_parse_date_string(value)
+                    processed_value = date_value if date_value is not None else value
                 else:
                     # Convert other types to string
                     processed_value = str(value)
@@ -153,7 +214,11 @@ class ExcelParser:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         try:
-            with openpyxl.load_workbook(file_path, read_only=True) as workbook:
-                return workbook.sheetnames
+            workbook = openpyxl.load_workbook(file_path, read_only=True)
+            sheet_names = workbook.sheetnames
+            workbook.close()
+            return sheet_names
+        except BadZipFile:
+            raise InvalidFileException(f"Invalid Excel file: not a valid .xlsx file")
         except InvalidFileException as e:
             raise InvalidFileException(f"Invalid Excel file: {e}") from e

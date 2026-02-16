@@ -7,7 +7,8 @@ Tests error handling and parameter passing for the mapping endpoint.
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import app, _file_storage, _uploaded_file_contents, _template_store, _mappings_storage
+from src.main import app, _file_storage
+from src.services.template_store import get_template_store
 from src.models.file import UploadFile, FileStatus
 from src.models.template import Template
 import io
@@ -23,9 +24,7 @@ def client() -> TestClient:
 def clear_storage():
     """Clear in-memory storage before each test."""
     _file_storage.clear()
-    _uploaded_file_contents.clear()
-    _mappings_storage.clear()
-    # Note: _template_store is a file-based store, we don't clear it
+    # Note: _template_store is a singleton, we don't clear it between tests
     yield
 
 
@@ -42,8 +41,7 @@ def sample_file_id() -> str:
         size=len(csv_content),
         status=FileStatus.UPLOADED,
     )
-    _file_storage.get(file_id] = upload_file
-    _uploaded_file_contents[file_id] = csv_content
+    _file_storage.store(file_id, csv_content)
     return file_id
 
 

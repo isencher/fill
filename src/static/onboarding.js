@@ -11,7 +11,7 @@ const CURRENT_ONBOARDING_VERSION = '1.0';
  * Check if onboarding should be shown
  * @returns {boolean} True if onboarding should be shown
  */
-export function shouldShowOnboarding() {
+function shouldShowOnboarding() {
     try {
         const completed = localStorage.getItem(ONBOARDING_STORAGE_KEY);
         const version = localStorage.getItem(ONBOARDING_VERSION_KEY);
@@ -30,7 +30,7 @@ export function shouldShowOnboarding() {
 /**
  * Mark onboarding as completed
  */
-export function markOnboardingCompleted() {
+function markOnboardingCompleted() {
     try {
         localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
         localStorage.setItem(ONBOARDING_VERSION_KEY, CURRENT_ONBOARDING_VERSION);
@@ -42,7 +42,7 @@ export function markOnboardingCompleted() {
 /**
  * Reset onboarding (for testing purposes)
  */
-export function resetOnboarding() {
+function resetOnboarding() {
     try {
         localStorage.removeItem(ONBOARDING_STORAGE_KEY);
         localStorage.removeItem(ONBOARDING_VERSION_KEY);
@@ -54,7 +54,7 @@ export function resetOnboarding() {
 /**
  * Navigate to main application
  */
-export function navigateToApp() {
+function navigateToApp() {
     window.location.href = '/static/index.html';
 }
 

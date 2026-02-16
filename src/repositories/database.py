@@ -7,6 +7,7 @@ Handles engine creation, session lifecycle, and initialization.
 
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Generator
 
 from sqlalchemy import create_engine
@@ -14,21 +15,28 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from migrations import Base
 
-# Default database URL (PostgreSQL in Docker)
-# Can be overridden via DATABASE_URL environment variable
-DEFAULT_DATABASE_URL = "postgresql://fill_user:fill_password@localhost:5432/fill_db"
+# Determine database URL based on environment
+# - If DATABASE_URL is set explicitly, use it
+# - Otherwise use SQLite for local development (simpler, no server needed)
+DEFAULT_DATABASE_URL = "sqlite:///./data/fill.db"
 
 # Database URL from environment or default
 DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
+# Ensure data directory exists for SQLite
+if DATABASE_URL.startswith("sqlite:///./"):
+    db_path = DATABASE_URL.replace("sqlite:///./", "")
+    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+
 # Create SQLAlchemy engine
 # pool_pre_ping=True checks connection health before use
 # echo=False disables SQL query logging (enable for debugging)
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    echo=False,
-)
+# check_same_thread=False required for SQLite in FastAPI (multiple threads)
+engine_args = {"pool_pre_ping": True, "echo": False}
+if DATABASE_URL.startswith("sqlite"):
+    engine_args["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, **engine_args)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -51,6 +59,24 @@ class DatabaseManager:
         """
         self.database_url = database_url or DATABASE_URL
 
+        # Create engine and session factory for this manager
+        engine_args = {"pool_pre_ping": True, "echo": False}
+        if self.database_url.startswith("sqlite"):
+            engine_args["connect_args"] = {"check_same_thread": False}
+
+            # Ensure data directory exists for SQLite
+            # Handle both relative (sqlite:///./path) and absolute (sqlite:///path) URLs
+            db_path = self.database_url.replace("sqlite:///", "")
+            if db_path and db_path != ":memory:":
+                Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+
+        self._engine = create_engine(self.database_url, **engine_args)
+        self._session_factory = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=self._engine
+        )
+
     def init_db(self) -> None:
         """
         Initialize the database schema.
@@ -58,7 +84,7 @@ class DatabaseManager:
         Creates all tables defined in the SQLAlchemy models.
         This is idempotent - safe to call multiple times.
         """
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=self._engine)
 
     def drop_all(self) -> None:
         """
@@ -66,7 +92,7 @@ class DatabaseManager:
 
         WARNING: This deletes all data. Use only for testing or development.
         """
-        Base.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=self._engine)
 
     def reset_db(self) -> None:
         """
@@ -92,7 +118,7 @@ class DatabaseManager:
             with db_manager.get_session() as session:
                 file = FileRepository(session).get_file_by_id(file_id)
         """
-        session = SessionLocal()
+        session = self._session_factory()
         try:
             yield session
             session.commit()
@@ -135,7 +161,7 @@ def get_db() -> Generator[Session, None, None]:
     FastAPI dependency for database session injection.
 
     Provides a database session to endpoint handlers.
-    Automatically handles session cleanup.
+    Automatically handles session commit/rollback and cleanup.
 
     Yields:
         Session: SQLAlchemy session for the request
@@ -149,5 +175,9 @@ def get_db() -> Generator[Session, None, None]:
     session = SessionLocal()
     try:
         yield session
+        session.commit()  # Auto-commit on successful request
+    except Exception:
+        session.rollback()  # Rollback on error
+        raise
     finally:
         session.close()
