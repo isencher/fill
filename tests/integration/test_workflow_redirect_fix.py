@@ -80,10 +80,18 @@ class TestTemplateSelectionPage:
     def test_template_page_requires_file_id(self, client: TestClient):
         """Page should warn if file_id is missing."""
         response = client.get("/templates.html")
-        
-        # Should still return 200 but show error state
+
+        # Should still return 200 but have error handling in JavaScript
         assert response.status_code == 200
-        assert "请先上传数据" in response.text or "missing" in response.text.lower()
+
+        # Check that the JavaScript file is included that handles missing file_id
+        assert 'src="/static/templates.js"' in response.text
+
+        # Check the JavaScript file for the error message
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert "请先上传数据" in js_content or "缺少数据文件" in js_content or "missing" in js_content.lower()
 
 
 class TestTemplateListAPI:

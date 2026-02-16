@@ -37,21 +37,23 @@ def get_file_extension(filename: str) -> str:
 def safe_filename(filename: str) -> str:
     """
     Convert a filename to a safe version.
-    
+
     Removes or replaces unsafe characters.
-    
+
     Args:
         filename: Original filename
-        
+
     Returns:
         Safe filename
     """
-    # Replace spaces with underscores
-    safe = filename.replace(" ", "_")
-    # Remove path separators and other unsafe chars
+    # Remove path traversal attempts (do this first, before other replacements)
+    safe = filename.replace("..", "")
+    # Replace path separators and other unsafe chars with underscores
     safe = re.sub(r'[\\/:*?"<>|]', "_", safe)
-    # Remove any path traversal attempts
-    safe = safe.replace("..", "_")
+    # Replace spaces with underscores
+    safe = safe.replace(" ", "_")
+    # Collapse multiple underscores into one
+    safe = re.sub(r'_+', '_', safe)
     return safe
 
 

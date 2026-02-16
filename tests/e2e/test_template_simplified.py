@@ -62,13 +62,22 @@ class TestSimplifiedTemplateCards:
         Args:
             client: FastAPI test client
         """
-        # Add some templates with built-in templates
+        # Check HTML has the template-summary CSS class for business-friendly descriptions
         response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
-        # Check for business-friendly summary section
-        assert 'Includes:' in content or '包含' in content
+        # Check for business-friendly summary section CSS class
+        assert 'template-summary' in content
+
+        # Verify JavaScript file is loaded that generates the business descriptions
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for the "Includes:" text that generates descriptions
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert 'Includes:' in js_content
 
     def test_template_cards_have_primary_action_button(self, client: TestClient) -> None:
         """
@@ -84,8 +93,14 @@ class TestSimplifiedTemplateCards:
         # Check for primary button class
         assert 'btn-primary' in content or 'use-template-btn' in content
 
-        # Check for clear action text
-        assert '选择此模板' in content or 'Use Template' in content
+        # Verify JavaScript file is loaded that generates the button text
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for the action text
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert '选择此模板' in js_content
 
     def test_template_cards_hide_technical_tags(self, client: TestClient) -> None:
         """
@@ -178,9 +193,18 @@ class TestTemplateCardWorkflow:
         assert response.status_code == 200
         content = response.text
 
-        # Check for clear call-to-action text
-        assert '选择此模板' in content or 'Select' in content
-        assert '→' in content  # Arrow indicator for action
+        # Check for button CSS classes
+        assert 'use-template-btn' in content or 'btn-primary' in content
+
+        # Verify JavaScript file is loaded that generates the CTA
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for the call-to-action text and arrow
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert '选择此模板' in js_content or 'Select' in js_content
+        assert '→' in js_content  # Arrow indicator for action
 
     def test_template_cards_have_consistent_styling(self, client: TestClient) -> None:
         """
@@ -215,8 +239,17 @@ class TestPlaceholderDescriptionGeneration:
         assert response.status_code == 200
         content = response.text
 
-        # Check for count display in templates with many fields
-        assert '项' in content or '项)' in content
+        # Check for count display CSS class
+        assert 'template-summary-count' in content
+
+        # Verify JavaScript file is loaded that generates the count display
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for the count text
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert '项' in js_content or '项)' in js_content
 
     def test_placeholder_description_uses_business_language(self, client: TestClient) -> None:
         """
@@ -229,9 +262,17 @@ class TestPlaceholderDescriptionGeneration:
         assert response.status_code == 200
         content = response.text
 
-        # Check for business terms instead of technical placeholders
-        # Should show things like "名称", "金额", "日期" instead of "{{name}}"
-        assert 'Includes:' in content or '包含' in content
+        # Check for business-friendly summary section CSS class
+        assert 'template-summary' in content
+
+        # Verify JavaScript file is loaded that generates business language
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for the "Includes:" text that generates business descriptions
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert 'Includes:' in js_content
 
 
 class TestTemplateCardAccessibility:
@@ -250,8 +291,14 @@ class TestTemplateCardAccessibility:
         assert response.status_code == 200
         content = response.text
 
-        # Check for button elements
-        assert '<button' in content
+        # Check that the JavaScript file is included
+        assert 'src="/static/templates.js"' in content
+
+        # Check the JavaScript file for button element creation
+        js_response = client.get("/static/templates.js")
+        assert js_response.status_code == 200
+        js_content = js_response.text
+        assert '<button' in js_content
 
     def test_template_cards_have_clear_click_targets(self, client: TestClient) -> None:
         """

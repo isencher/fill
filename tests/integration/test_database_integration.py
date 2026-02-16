@@ -13,8 +13,9 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import app
-from src.repositories.database import DatabaseManager, init_db
+from src.main import app, _file_storage
+from src.repositories.database import DatabaseManager, init_db, get_db_manager
+from migrations import File as FileModel
 
 
 @pytest.fixture
@@ -38,6 +39,28 @@ def client() -> TestClient:
     import os
     if Path(db_path).exists():
         os.unlink(db_path)
+
+
+@pytest.fixture(autouse=True)
+def clear_storage() -> None:
+    """Clear in-memory storage and database before each test."""
+    # Clear in-memory file storage
+    _file_storage.clear()
+
+    # Clear database files table
+    db_manager = get_db_manager()
+    with db_manager.get_session() as db:
+        # Delete all files
+        db.query(FileModel).delete()
+        db.commit()
+
+    yield
+
+    # Clean up again after test
+    _file_storage.clear()
+    with db_manager.get_session() as db:
+        db.query(FileModel).delete()
+        db.commit()
 
 
 class TestUploadEndpointWithDatabase:

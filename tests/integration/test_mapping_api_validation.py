@@ -12,6 +12,8 @@ from src.main import app, _file_storage
 from src.services.template_store import get_template_store
 from src.models.file import UploadFile, FileStatus
 from src.models.template import Template
+from src.repositories.database import get_db_manager
+from migrations import File as FileModel
 import io
 
 
@@ -23,10 +25,23 @@ def client() -> TestClient:
 
 @pytest.fixture(autouse=True)
 def clear_storage():
-    """Clear in-memory storage before each test."""
+    """Clear in-memory storage and database before each test."""
     _file_storage.clear()
+
+    # Clear database files table
+    db_manager = get_db_manager()
+    with db_manager.get_session() as db:
+        db.query(FileModel).delete()
+        db.commit()
+
     # Note: TemplateStore is a singleton, we don't clear it between tests
     yield
+
+    # Clean up again after test
+    _file_storage.clear()
+    with db_manager.get_session() as db:
+        db.query(FileModel).delete()
+        db.commit()
 
 
 @pytest.fixture
@@ -34,7 +49,8 @@ def sample_file_id() -> str:
     """Create and return a sample uploaded file ID."""
     csv_content = b"Name,Email,Phone\nJohn,john@test.com,555-1234\nJane,jane@test.com,555-5678"
 
-    file_id = str(uuid4())
+    file_id_uuid = uuid4()
+    file_id = str(file_id_uuid)
     upload_file = UploadFile(
         id=file_id,
         filename="test.csv",
@@ -43,6 +59,21 @@ def sample_file_id() -> str:
         status=FileStatus.PENDING,
     )
     _file_storage.store(file_id, csv_content)
+
+    # Also create database record with UUID object
+    db_manager = get_db_manager()
+    with db_manager.get_session() as db:
+        db_file = FileModel(
+            id=file_id_uuid,  # Use UUID object, not string
+            filename="test.csv",
+            content_type="text/csv",
+            size=len(csv_content),
+            status=FileStatus.PENDING.value,
+            file_path=f"/memory/{file_id}",  # Required field for in-memory storage
+        )
+        db.add(db_file)
+        db.commit()
+
     return file_id
 
 
