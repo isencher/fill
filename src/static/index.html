@@ -6,6 +6,9 @@
     <title>Fill - 2D Table Data Auto-Filling</title>
     <link rel="stylesheet" href="/static/components/progress.css">
     <link rel="stylesheet" href="/static/components/animations.css">
+    <link rel="stylesheet" href="/static/components/help-tooltip.css">
+    <link rel="stylesheet" href="/static/components/faq-modal.css">
+    <link rel="stylesheet" href="/static/components/tour.css">
     <link rel="stylesheet" href="/static/mobile.css">
     <style>
         * {
@@ -378,13 +381,20 @@
         <h1>Fill</h1>
         <p class="subtitle">2D Table Data Auto-Filling Web Application</p>
 
-        <div class="upload-area" id="uploadArea">
+        <div class="upload-area" id="uploadArea" data-help-tooltip="Upload your Excel or CSV file here. The file should have column headers in the first row and data in subsequent rows." data-help-wide="true">
             <div class="upload-icon">📁</div>
             <div class="upload-text">Drop your file here</div>
             <div class="upload-hint">or click to browse (.xlsx, .csv files only)</div>
         </div>
 
         <input type="file" id="fileInput" accept=".xlsx,.csv,.XLSX,.CSV">
+
+        <!-- Sample Download Buttons -->
+        <div class="sample-downloads" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+            <a href="/static/samples/sample-customer-data.csv" download class="sample-download-btn" style="flex: 1; text-align: center; padding: 10px 16px; background: #f0f2ff; color: #667eea; border: 2px solid #667eea; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease;">
+                📥 Sample CSV
+            </a>
+        </div>
 
         <div class="file-info" id="fileInfo">
             <div class="file-name" id="fileName"></div>
@@ -434,6 +444,9 @@
 
     <script src="/static/components/progress.js"></script>
     <script src="/static/components/skeleton.js"></script>
+    <script src="/static/components/help-tooltip.js"></script>
+    <script src="/static/components/faq-modal.js"></script>
+    <script src="/static/components/tour.js"></script>
     <script>
         // Initialize progress indicator for upload page
         document.addEventListener('DOMContentLoaded', function() {
@@ -451,6 +464,11 @@
                     progress.navigateToStep(stepId);
                 });
             });
+
+            // Auto-start tour for first-time users
+            if (typeof autoStartTour === 'function') {
+                autoStartTour('upload');
+            }
         });
     </script>
     <script src="/static/upload.js"></script>

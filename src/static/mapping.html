@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="/static/components/progress.css">
     <link rel="stylesheet" href="/static/components/empty-state.css">
     <link rel="stylesheet" href="/static/components/animations.css">
+    <link rel="stylesheet" href="/static/components/help-tooltip.css">
+    <link rel="stylesheet" href="/static/components/faq-modal.css">
+    <link rel="stylesheet" href="/static/components/tour.css">
     <link rel="stylesheet" href="/static/mobile.css">
     <style>
         * {
@@ -473,8 +476,16 @@
                     progress.navigateToStep(stepId);
                 });
             });
+
+            // Auto-start tour for first-time users
+            if (typeof autoStartTour === 'function') {
+                autoStartTour('mapping');
+            }
         });
     </script>
+    <script src="/static/components/help-tooltip.js"></script>
+    <script src="/static/components/faq-modal.js"></script>
+    <script src="/static/components/tour.js"></script>
     <script src="/static/mapping.js"></script>
 </body>
 </html>

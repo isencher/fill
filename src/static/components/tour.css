@@ -1,0 +1,220 @@
+/**
+ * Tour Component
+ * Provides interactive guided tours for first-time users
+ */
+
+.tour-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    display: none;
+    pointer-events: none;
+}
+
+.tour-overlay.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.tour-highlight {
+    position: relative;
+    z-index: 1002;
+    box-shadow: 0 0 0 4px #667eea, 0 0 0 8px rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    pointer-events: auto;
+}
+
+.tour-tooltip {
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1003;
+    max-width: 350px;
+    display: none;
+    animation: slideUp 0.3s ease;
+}
+
+.tour-tooltip.show {
+    display: block;
+}
+
+.tour-tooltip-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.tour-tooltip-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2d3748;
+    margin: 0;
+}
+
+.tour-tooltip-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #718096;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.tour-tooltip-close:hover {
+    color: #2d3748;
+}
+
+.tour-tooltip-content {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.tour-tooltip-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.tour-tooltip-steps {
+    font-size: 14px;
+    color: #718096;
+}
+
+.tour-tooltip-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.tour-tooltip-prev,
+.tour-tooltip-next,
+.tour-tooltip-skip {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.tour-tooltip-prev {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.tour-tooltip-prev:hover {
+    background: #cbd5e0;
+}
+
+.tour-tooltip-next {
+    background: #667eea;
+    color: white;
+}
+
+.tour-tooltip-next:hover {
+    background: #5568d3;
+}
+
+.tour-tooltip-skip {
+    background: none;
+    color: #718096;
+    border: 1px solid #e2e8f0;
+}
+
+.tour-tooltip-skip:hover {
+    background: #f7fafc;
+}
+
+/* Tour trigger button */
+.tour-trigger {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    padding: 12px 20px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tour-trigger:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile optimization */
+@media (max-width: 767px) {
+    .tour-tooltip {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: calc(100% - 40px);
+    }
+
+    .tour-trigger {
+        bottom: 100px;
+        left: 16px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .tour-highlight {
+        box-shadow: 0 0 0 3px #667eea, 0 0 0 6px rgba(102, 126, 234, 0.3);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Pulse animation for highlighted elements */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 4px #667eea, 0 0 0 8px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 0 6px #667eea, 0 0 0 12px rgba(102, 126, 234, 0.2);
+    }
+}
+
+.tour-highlight.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
