@@ -22,6 +22,7 @@ const placeholdersList = document.getElementById('placeholdersList');
 const saveMappingBtn = document.getElementById('saveMappingBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const message = document.getElementById('message');
+const autoMatchBtn = document.getElementById('autoMatchBtn');
 
 // Built-in templates (same as templates.js)
 const BUILT_IN_TEMPLATES = {
@@ -49,6 +50,30 @@ const BUILT_IN_TEMPLATES = {
 let fileData = null;
 let templateData = null;
 let columns = [];
+
+// Business-friendly field descriptions
+const FIELD_DESCRIPTIONS = {
+    '客户名称': 'Customer or company name',
+    '甲方': 'Party A (customer)',
+    '乙方': 'Party B (supplier)',
+    '收件人': 'Recipient name',
+    '发件人': 'Sender name',
+    '姓名': 'Full name',
+    '名称': 'Name or title',
+    '金额': 'Payment amount',
+    '价格': 'Unit price',
+    '费用': 'Cost or fee',
+    '日期': 'Date (YYYY-MM-DD)',
+    '时间': 'Time or datetime',
+    '发票号码': 'Invoice number',
+    '合同编号': 'Contract reference',
+    '主题': 'Subject line',
+    '电话': 'Phone number',
+    '手机': 'Mobile number',
+    '地址': 'Street address',
+    '数量': 'Quantity or count',
+    '联系人': 'Contact person'
+};
 
 // Show message with animation
 function showMessage(text, type) {
@@ -267,7 +292,7 @@ function renderDataTable(data) {
 }
 
 // Render placeholders list with mapping dropdowns
-function renderPlaceholdersList(template) {
+function renderPlaceholdersList(template, suggestions = null) {
     placeholdersList.innerHTML = '';
 
     if (!template.placeholders || template.placeholders.length === 0) {
@@ -279,9 +304,68 @@ function renderPlaceholdersList(template) {
         const item = document.createElement('div');
         item.className = 'placeholder-item';
 
+        // Get suggestion for this placeholder if available
+        const suggestion = suggestions ? suggestions.find(s => s.placeholder === placeholder) : null;
+
+        // Apply confidence styling
+        if (suggestion && suggestion.suggested_column) {
+            if (suggestion.level === 'high') {
+                item.classList.add('matched-high');
+            } else if (suggestion.level === 'medium') {
+                item.classList.add('matched-medium');
+            } else if (suggestion.level === 'low') {
+                item.classList.add('matched-low');
+            }
+        }
+
+        // Create label container
+        const labelContainer = document.createElement('div');
+        labelContainer.style.display = 'flex';
+        labelContainer.style.justifyContent = 'space-between';
+        labelContainer.style.alignItems = 'center';
+        labelContainer.style.marginBottom = '10px';
+
+        // Main label with business-friendly name
         const label = document.createElement('div');
         label.className = 'placeholder-name';
-        label.textContent = `{{${placeholder}}}`;
+        label.textContent = placeholder; // Use plain name instead of {{placeholder}}
+        labelContainer.appendChild(label);
+
+        // Confidence indicator if we have suggestions
+        if (suggestion && suggestion.suggested_column) {
+            const indicator = document.createElement('span');
+            indicator.className = `confidence-indicator confidence-${suggestion.level}`;
+
+            const icon = document.createElement('span');
+            icon.className = 'confidence-icon';
+            icon.textContent = suggestion.level === 'high' ? '🟢' :
+                              suggestion.level === 'medium' ? '🟡' : '🔴';
+            indicator.appendChild(icon);
+
+            const label2 = document.createElement('span');
+            label2.textContent = suggestion.level === 'high' ? 'High Match' :
+                               suggestion.level === 'medium' ? 'Possible Match' : 'Low Match';
+            indicator.appendChild(label2);
+
+            labelContainer.appendChild(indicator);
+        }
+
+        item.appendChild(labelContainer);
+
+        // Add business-friendly description
+        const description = FIELD_DESCRIPTIONS[placeholder];
+        if (description) {
+            const desc = document.createElement('div');
+            desc.className = 'placeholder-description';
+            desc.textContent = description;
+            item.appendChild(desc);
+        }
+
+        // Add technical info (collapsible)
+        const techInfo = document.createElement('div');
+        techInfo.className = 'technical-info';
+        techInfo.textContent = `Template field: {{${placeholder}}}`;
+        item.appendChild(techInfo);
 
         const select = document.createElement('select');
         select.className = 'placeholder-select';
@@ -292,12 +376,19 @@ function renderPlaceholdersList(template) {
             if (typeof animateSelectChange === 'function') {
                 animateSelectChange(select);
             }
+
+            // Remove confidence class when user manually changes
+            item.classList.remove('matched-high', 'matched-medium', 'matched-low');
+            const oldIndicator = labelContainer.querySelector('.confidence-indicator');
+            if (oldIndicator) {
+                oldIndicator.remove();
+            }
         });
 
         // Add empty option
         const emptyOption = document.createElement('option');
         emptyOption.value = '';
-        emptyOption.textContent = '-- Select column --';
+        emptyOption.textContent = '-- Select data column --';
         select.appendChild(emptyOption);
 
         // Add column options
@@ -308,10 +399,61 @@ function renderPlaceholdersList(template) {
             select.appendChild(option);
         });
 
-        item.appendChild(label);
+        // Apply suggested mapping if available and confidence is high/medium
+        if (suggestion && suggestion.suggested_column && (suggestion.level === 'high' || suggestion.level === 'medium')) {
+            select.value = suggestion.suggested_column;
+        }
+
         item.appendChild(select);
         placeholdersList.appendChild(item);
     });
+}
+
+// Auto-match fields using API
+async function autoMatchFields() {
+    try {
+        // Disable button and show loading
+        autoMatchBtn.disabled = true;
+        const originalText = autoMatchBtn.innerHTML;
+        autoMatchBtn.innerHTML = '<span class="icon">⏳</span><span>Finding matches...</span>';
+
+        // Call suggest API
+        const response = await fetch(`/api/v1/mappings/suggest?file_id=${encodeURIComponent(fileId)}&template_id=${encodeURIComponent(templateId)}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to get suggestions');
+        }
+
+        const data = await response.json();
+
+        // Re-render placeholders list with suggestions
+        renderPlaceholdersList(templateData, data.suggested_mappings);
+
+        // Show success message with confidence info
+        const highConfidence = data.suggested_mappings.filter(s => s.level === 'high').length;
+        const mediumConfidence = data.suggested_mappings.filter(s => s.level === 'medium').length;
+
+        if (highConfidence > 0) {
+            showMessage(`Auto-matched ${highConfidence} fields with high confidence! 🎯`, 'success');
+            if (mediumConfidence > 0) {
+                setTimeout(() => {
+                    showMessage(`${mediumConfidence} more fields need your review (medium confidence).`, 'info');
+                }, 2500);
+            }
+        } else if (mediumConfidence > 0) {
+            showMessage(`Found ${mediumConfidence} possible matches. Please review before continuing.`, 'info');
+        } else {
+            showMessage('No confident matches found. Please map fields manually.', 'info');
+        }
+
+    } catch (error) {
+        console.error('Error auto-matching fields:', error);
+        showMessage('Auto-match failed: ' + error.message, 'error');
+    } finally {
+        // Re-enable button
+        autoMatchBtn.disabled = false;
+        autoMatchBtn.innerHTML = '<span class="icon">✨</span><span>Auto-Match Fields</span>';
+    }
 }
 
 // Save mapping
@@ -452,6 +594,7 @@ async function init() {
 // Event listeners
 saveMappingBtn.addEventListener('click', saveMapping);
 cancelBtn.addEventListener('click', cancel);
+autoMatchBtn.addEventListener('click', autoMatchFields);
 
 // Start initialization
 init();
