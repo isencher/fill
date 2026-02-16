@@ -47,7 +47,7 @@ class TestSimplifiedTemplateCards:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -63,7 +63,7 @@ class TestSimplifiedTemplateCards:
             client: FastAPI test client
         """
         # Add some templates with built-in templates
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -77,7 +77,7 @@ class TestSimplifiedTemplateCards:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -94,7 +94,7 @@ class TestSimplifiedTemplateCards:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -115,7 +115,7 @@ class TestViewDetailsFeature:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -129,7 +129,7 @@ class TestViewDetailsFeature:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -174,7 +174,7 @@ class TestTemplateCardWorkflow:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -189,7 +189,7 @@ class TestTemplateCardWorkflow:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -211,7 +211,7 @@ class TestPlaceholderDescriptionGeneration:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -225,7 +225,7 @@ class TestPlaceholderDescriptionGeneration:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -246,7 +246,7 @@ class TestTemplateCardAccessibility:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -260,7 +260,7 @@ class TestTemplateCardAccessibility:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -280,7 +280,7 @@ class TestTemplateCardVisualDesign:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -295,7 +295,7 @@ class TestTemplateCardVisualDesign:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -309,7 +309,7 @@ class TestTemplateCardVisualDesign:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 

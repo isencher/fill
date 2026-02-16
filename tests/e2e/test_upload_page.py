@@ -49,10 +49,12 @@ class TestUploadPage:
         """
         Test that the upload page loads and returns valid HTML.
 
+        Note: Accesses /static/index.html directly to bypass onboarding.
+
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
 
         # Verify response status
         assert response.status_code == 200
@@ -70,10 +72,12 @@ class TestUploadPage:
         """
         Test that the upload page contains required form elements.
 
+        Note: Accesses /static/index.html directly to bypass onboarding.
+
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for file input
@@ -97,7 +101,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Verify CSS is present
@@ -113,7 +117,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Verify JavaScript source is included (with /static/ prefix)
@@ -252,7 +256,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for viewport meta tag (responsive design)
@@ -268,7 +272,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for language attribute
@@ -287,7 +291,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for data preview container
@@ -300,7 +304,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for preview stats elements
@@ -314,7 +318,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for preview table
@@ -327,7 +331,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for preview toggle button
@@ -341,7 +345,7 @@ class TestUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # Check for preview-related CSS classes

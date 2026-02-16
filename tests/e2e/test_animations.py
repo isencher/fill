@@ -181,7 +181,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         assert response.status_code == 200
         content = response.text
 
@@ -194,7 +194,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         assert response.status_code == 200
         content = response.text
 
@@ -207,7 +207,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -220,7 +220,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -233,7 +233,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -246,7 +246,7 @@ class TestAnimationsOnPages:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -265,7 +265,7 @@ class TestAnimationIntegration:
         Args:
             client: FastAPI test client
         """
-        pages = ["/", "/templates.html", "/mapping.html"]
+        pages = ["/static/index.html", "/static/templates.html", "/static/mapping.html"]
 
         for page in pages:
             response = client.get(page)
@@ -279,7 +279,7 @@ class TestAnimationIntegration:
         Args:
             client: FastAPI test client
         """
-        pages = ["/", "/templates.html", "/mapping.html"]
+        pages = ["/static/index.html", "/static/templates.html", "/static/mapping.html"]
 
         for page in pages:
             response = client.get(page)

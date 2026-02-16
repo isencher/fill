@@ -39,7 +39,7 @@ class TestProgressIndicatorOnUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         assert response.status_code == 200
         content = response.text
 
@@ -59,7 +59,7 @@ class TestProgressIndicatorOnUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         assert response.status_code == 200
         content = response.text
 
@@ -74,7 +74,7 @@ class TestProgressIndicatorOnUploadPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         content = response.text
 
         # The progress.js should define all steps
@@ -94,7 +94,7 @@ class TestProgressIndicatorOnTemplatePage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -114,7 +114,7 @@ class TestProgressIndicatorOnTemplatePage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -129,7 +129,7 @@ class TestProgressIndicatorOnTemplatePage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -150,7 +150,7 @@ class TestProgressIndicatorOnMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -170,7 +170,7 @@ class TestProgressIndicatorOnMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -185,7 +185,7 @@ class TestProgressIndicatorOnMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -348,7 +348,7 @@ class TestProgressIndicatorIntegration:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/")
+        response = client.get("/static/index.html")
         assert response.status_code == 200
         content = response.text
 
@@ -362,7 +362,7 @@ class TestProgressIndicatorIntegration:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/templates.html")
+        response = client.get("/static/templates.html")
         assert response.status_code == 200
         content = response.text
 
@@ -376,7 +376,7 @@ class TestProgressIndicatorIntegration:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping.html")
+        response = client.get("/static/mapping.html")
         assert response.status_code == 200
         content = response.text
 
@@ -397,7 +397,7 @@ class TestProgressIndicatorVisualConsistency:
             client: FastAPI test client
         """
         # Check all pages reference the same CSS file
-        pages = ["/", "/templates.html", "/mapping.html"]
+        pages = ["/static/index.html", "/static/templates.html", "/static/mapping.html"]
 
         for page in pages:
             response = client.get(page)
@@ -412,7 +412,7 @@ class TestProgressIndicatorVisualConsistency:
             client: FastAPI test client
         """
         # Check all pages reference the same JS file
-        pages = ["/", "/templates.html", "/mapping.html"]
+        pages = ["/static/index.html", "/static/templates.html", "/static/mapping.html"]
 
         for page in pages:
             response = client.get(page)
@@ -427,7 +427,7 @@ class TestProgressIndicatorVisualConsistency:
             client: FastAPI test client
         """
         # Check all pages use the same container ID
-        pages = ["/", "/templates.html", "/mapping.html"]
+        pages = ["/static/index.html", "/static/templates.html", "/static/mapping.html"]
 
         for page in pages:
             response = client.get(page)

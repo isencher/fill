@@ -113,7 +113,7 @@ class TestMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test-file&template_id=test-template")
+        response = client.get("/static/mapping.html?file_id=test-file&template_id=test-template")
 
         # Verify response status
         assert response.status_code == 200
@@ -122,7 +122,7 @@ class TestMappingPage:
         # Verify HTML structure
         content = response.text
         assert "<!DOCTYPE html>" in content
-        assert "<title>Fill - Map Columns to Placeholders</title>" in content
+        assert "<title>Fill - Match Data Fields to Template</title>" in content
         assert 'id="dataTable"' in content
         assert 'id="placeholdersList"' in content
         assert 'id="saveMappingBtn"' in content
@@ -134,7 +134,7 @@ class TestMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test&template_id=test")
+        response = client.get("/static/mapping.html?file_id=test&template_id=test")
         content = response.text
 
         # Check for back link
@@ -180,7 +180,7 @@ class TestMappingPage:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test&template_id=test")
+        response = client.get("/static/mapping.html?file_id=test&template_id=test")
         content = response.text
 
         # Check for JavaScript include (with /static/ prefix)
@@ -442,7 +442,7 @@ Doohickey,14.99,200
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test&template_id=test")
+        response = client.get("/static/mapping.html?file_id=test&template_id=test")
         content = response.text
 
         # Check for loading state elements
@@ -457,7 +457,7 @@ Doohickey,14.99,200
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test&template_id=test")
+        response = client.get("/static/mapping.html?file_id=test&template_id=test")
         content = response.text
 
         # Check for responsive design elements
@@ -471,7 +471,7 @@ Doohickey,14.99,200
         Args:
             client: FastAPI test client
         """
-        response = client.get("/mapping?file_id=test&template_id=test")
+        response = client.get("/static/mapping.html?file_id=test&template_id=test")
         content = response.text
 
         # Check for accessibility features
