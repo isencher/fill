@@ -12,7 +12,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import _uploaded_files, app
+from src.main import _file_storage, app
 
 
 @pytest.fixture
@@ -27,11 +27,11 @@ def client() -> TestClient:
 
 
 @pytest.fixture(autouse=True)
-def clear_uploaded_files() -> None:
+def clear_file_storage() -> None:
     """Clear in-memory uploaded files storage before each test."""
-    _uploaded_files.clear()
+    _file_storage.clear()
     yield
-    _uploaded_files.clear()
+    _file_storage.clear()
 
 
 class TestUploadPage:

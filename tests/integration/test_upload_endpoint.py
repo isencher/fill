@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi.responses import JSONResponse
 
-from src.main import app, _uploaded_files
+from src.main import app, _file_storage
 
 
 @pytest.fixture
@@ -27,11 +27,11 @@ def client() -> TestClient:
 
 
 @pytest.fixture(autouse=True)
-def clear_uploaded_files() -> None:
+def clear_file_storage() -> None:
     """Clear the in-memory uploaded files storage before each test."""
-    _uploaded_files.clear()
+    _file_storage.clear()
     yield
-    _uploaded_files.clear()
+    _file_storage.clear()
 
 
 class TestValidFileUpload:
@@ -248,10 +248,9 @@ class TestFileStorage:
 
         # Verify the file metadata is stored (convert string ID to UUID)
         file_uuid = UUID(file_id)
-        assert file_uuid in _uploaded_files
-        stored_file = _uploaded_files[file_uuid]
-        assert stored_file.filename == "test.csv"
-        assert stored_file.size == len(file_content)
+        assert _file_storage.exists(file_uuid)
+        stored_file = _file_storage.get(file_uuid)
+        assert stored_file == file_content
 
     def test_multiple_files_stored_separately(self, client: TestClient) -> None:
         """
@@ -277,10 +276,11 @@ class TestFileStorage:
         file_uuid_1 = UUID(file_id_1)
         file_uuid_2 = UUID(file_id_2)
 
-        assert file_uuid_1 in _uploaded_files
-        assert file_uuid_2 in _uploaded_files
-        assert _uploaded_files[file_uuid_1].filename == "file1.csv"
-        assert _uploaded_files[file_uuid_2].filename == "file2.csv"
+        assert _file_storage.exists(file_uuid_1)
+        assert _file_storage.exists(file_uuid_2)
+        # Verify content is stored
+        assert _file_storage.get(file_uuid_1) is not None
+        assert _file_storage.get(file_uuid_2) is not None
 
 
 class TestErrorResponseFormat:

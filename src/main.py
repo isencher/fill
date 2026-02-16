@@ -4,20 +4,31 @@ Fill Application - 2D Table Data Auto-Filling Web Application
 Main FastAPI application entry point.
 """
 
+import json
+import os
 import tempfile
 from pathlib import Path
 from uuid import UUID
 
 from typing import Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile as FastAPIUploadFile
+from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, UploadFile as FastAPIUploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 
 from src.models.file import FileStatus, UploadFile
 from src.models.template import Template
+from src.repositories.database import init_db, get_db
+from src.repositories.file_repository import FileRepository
+from src.repositories.template_repository import TemplateRepository
+from src.repositories.mapping_repository import MappingRepository
 from src.services.template_store import get_template_store
+from src.services.file_storage import get_file_storage
+
+# Initialize database on module load
+init_db()
 
 # Create FastAPI application instance
 app = FastAPI(
@@ -28,10 +39,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS middleware for development
+# Configure CORS middleware for development and production
+# Use ALLOWED_ORIGINS env var for production (comma-separated list)
+# Default: http://localhost:8000,http://localhost:3000 for development
+_allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000")
+ALLOWED_ORIGINS = [origin.strip() for origin in _allowed_origins_str.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,19 +92,25 @@ async def mapping_page() -> FileResponse:
     return FileResponse(mapping_path)
 
 
-# In-memory storage for uploaded files (TODO: replace with database in Phase 9)
-_uploaded_files: dict[UUID, UploadFile] = {}
-_uploaded_file_contents: dict[UUID, bytes] = {}  # Store file content bytes
-_mappings_storage: dict[str, dict] = {}  # In-memory mappings storage
+# File content storage service
+# Uses FileStorage service for centralized, thread-safe in-memory storage
+_file_storage = get_file_storage()
+
+# Import database session dependency
+from src.repositories.database import get_db
 
 
 @app.post("/api/v1/upload", tags=["Upload"], status_code=201)
-async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
+async def upload_file(
+    file: FastAPIUploadFile = File(...),
+    db: Session = Depends(get_db)
+) -> JSONResponse:
     """
     Upload a file to the system.
 
     Args:
         file: The file to upload (multipart/form-data)
+        db: Database session
 
     Returns:
         JSONResponse with upload confirmation including file_id
@@ -119,35 +141,38 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
     # Determine content type
     content_type = file.content_type or "application/octet-stream"
 
-    # Create UploadFile model instance
-    upload_file = UploadFile(
+    # Store file metadata in database first (to get the ID)
+    file_repo = FileRepository(db)
+    db_file = file_repo.create_file(
         filename=file.filename or "unnamed",
         content_type=content_type,
         size=file_size,
-        status=FileStatus.PENDING,
+        file_path="",  # Will update after we know the ID
+        status="uploaded",
     )
-
-    # Save file to temporary storage
-    # In a production environment, this would use object storage or a file system
+    
+    # Use database-generated ID for file path
     temp_dir = Path(tempfile.gettempdir()) / "fill" / "uploads"
     temp_dir.mkdir(parents=True, exist_ok=True)
-    file_path = temp_dir / str(upload_file.id)
+    file_path = temp_dir / str(db_file.id)
 
     with open(file_path, "wb") as f:
         f.write(file_content)
+    
+    # Update file path in database
+    db_file.file_path = str(file_path)
 
-    # Store file metadata and content in memory
-    _uploaded_files[upload_file.id] = upload_file
-    _uploaded_file_contents[upload_file.id] = file_content
+    # Store content temporarily for parsing (keyed by database ID)
+    _file_storage.store(db_file.id, file_content)
 
     return JSONResponse(
         status_code=201,
         content={
             "message": "File uploaded successfully",
-            "file_id": str(upload_file.id),
-            "filename": upload_file.filename,
-            "size": upload_file.size,
-            "status": upload_file.status,
+            "file_id": str(db_file.id),
+            "filename": db_file.filename,
+            "size": db_file.size,
+            "status": db_file.status,
         }
     )
 
@@ -156,6 +181,7 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
 async def list_files(
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of files to return"),
     offset: int = Query(0, ge=0, description="Number of files to skip"),
+    db: Session = Depends(get_db),
 ) -> JSONResponse:
     """
     List all uploaded files with pagination support.
@@ -163,6 +189,7 @@ async def list_files(
     Args:
         limit: Maximum number of files to return (1-1000)
         offset: Number of files to skip for pagination
+        db: Database session
 
     Returns:
         JSONResponse with list of files and pagination metadata
@@ -170,15 +197,10 @@ async def list_files(
     Raises:
         HTTPException: 400 if pagination parameters are invalid
     """
-    # Get all files from storage
-    all_files = list(_uploaded_files.values())
-
-    # Sort by uploaded_at descending (newest first)
-    all_files.sort(key=lambda f: f.uploaded_at, reverse=True)
-
-    # Apply pagination
-    total_count = len(all_files)
-    paginated_files = all_files[offset : offset + limit]
+    # Get files from database
+    file_repo = FileRepository(db)
+    total_count = file_repo.count_files()
+    db_files = file_repo.list_files(limit=limit, offset=offset)
 
     # Build response with file metadata
     files_response = [
@@ -187,10 +209,10 @@ async def list_files(
             "filename": f.filename,
             "content_type": f.content_type,
             "size": f.size,
-            "uploaded_at": f.uploaded_at.isoformat(),
+            "uploaded_at": f.uploaded_at.isoformat() if f.uploaded_at else None,
             "status": f.status,
         }
-        for f in paginated_files
+        for f in db_files
     ]
 
     return JSONResponse(
@@ -407,30 +429,34 @@ async def suggest_mapping(
     template = _template_store.get_template(template_id)
     if template is None:
         raise HTTPException(status_code=404, detail=f"Template not found: {template_id}")
-    
+
     # Parse file to get column names
-    upload_file = _uploaded_files[file_uuid]
-    file_content = _uploaded_file_contents.get(file_uuid)
-    
+    file_repo = FileRepository(db)
+    db_file = file_repo.get_file_by_id(file_uuid)
+    if db_file is None:
+        raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+
+    file_content = _file_storage.get(file_uuid)
+
     if not file_content:
         raise HTTPException(status_code=404, detail=f"File content not found: {file_id}")
     
     try:
         from src.services.parser_factory import get_parser
-        
+
         # Save to temp file for parsing
         temp_dir = Path(tempfile.gettempdir()) / "fill" / "parse"
         temp_dir.mkdir(parents=True, exist_ok=True)
-        temp_path = temp_dir / f"{file_id}_{upload_file.filename}"
-        
+        temp_path = temp_dir / f"{file_id}_{db_file.filename}"
+
         with open(temp_path, "wb") as f:
             f.write(file_content)
-        
+
         # Parse file
-        parser_class = get_parser(upload_file.filename)
+        parser_class = get_parser(db_file.filename)
         parser = parser_class()
-        
-        extension = upload_file.filename.lower().split(".")[-1]
+
+        extension = db_file.filename.lower().split(".")[-1]
         if extension == "csv":
             rows = parser.parse_csv(temp_path)
         else:
@@ -807,12 +833,13 @@ from src.models.mapping import Mapping
 
 
 @app.get("/api/v1/parse/{file_id}", tags=["Parsing"])
-async def parse_file(file_id: str) -> JSONResponse:
+async def parse_file(file_id: str, db: Session = Depends(get_db)) -> JSONResponse:
     """
     Parse uploaded file and return data preview (first 5 rows).
 
     Args:
         file_id: ID of uploaded file to parse
+        db: Database session
 
     Returns:
         JSONResponse with parsed data (rows and columns)
@@ -821,9 +848,11 @@ async def parse_file(file_id: str) -> JSONResponse:
         HTTPException: 404 if file not found
         HTTPException: 400 if file cannot be parsed
     """
+    from uuid import UUID as UUID_TYPE
+    
     # Convert string ID to UUID for lookup
     try:
-        file_uuid = UUID(file_id)
+        file_uuid = UUID_TYPE(file_id)
     except ValueError:
         # Treat invalid UUID format as file not found for better UX
         raise HTTPException(
@@ -831,37 +860,58 @@ async def parse_file(file_id: str) -> JSONResponse:
             detail=f"File not found: {file_id}"
         )
 
-    # Check if file exists
-    if file_uuid not in _uploaded_files:
+    # Check if file exists in database
+    file_repo = FileRepository(db)
+    db_file = file_repo.get_file_by_id(file_uuid)
+    
+    if db_file is None:
         raise HTTPException(
             status_code=404,
             detail=f"File not found: {file_id}"
         )
 
-    if file_uuid not in _uploaded_file_contents:
-        raise HTTPException(
-            status_code=404,
-            detail=f"File content not found: {file_id}"
-        )
-
-    upload_file = _uploaded_files[file_uuid]
-    file_content = _uploaded_file_contents[file_uuid]
+    # Get file content from filesystem
+    file_path = Path(db_file.file_path)
+    if not file_path.exists():
+        # Try to get from memory cache
+        file_content = _file_storage.get(file_uuid)
+        if file_content:
+            # Re-write to disk
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "wb") as f:
+                f.write(file_content)
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"File content not found: {file_id}"
+            )
 
     # Parse file based on extension
     try:
-        parser_class = get_parser(upload_file.filename)
-        file_extension = upload_file.filename.lower().split('.')[-1]
+        parser_class = get_parser(db_file.filename)
+        file_extension = db_file.filename.lower().split('.')[-1]
 
-        # Write content to temp file for parsing (parsers require file paths)
+        # Create temp file for parsing
         temp_dir = Path(tempfile.gettempdir()) / "fill" / "parse"
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        # Include original filename with extension for parser compatibility
-        temp_filename = f"{file_id}_{upload_file.filename}"
+        # Copy file to temp location if needed
+        temp_filename = f"{file_id}_{db_file.filename}"
         temp_file_path = temp_dir / temp_filename
 
-        with open(temp_file_path, "wb") as f:
-            f.write(file_content)
+        if file_path.exists():
+            import shutil
+            shutil.copy(file_path, temp_file_path)
+        else:
+            file_content = _file_storage.get(file_uuid)
+            if file_content:
+                with open(temp_file_path, "wb") as f:
+                    f.write(file_content)
+            else:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"File content not found: {file_id}"
+                )
 
         # Parse based on file type
         if file_extension == "csv":
@@ -878,7 +928,7 @@ async def parse_file(file_id: str) -> JSONResponse:
             status_code=200,
             content={
                 "file_id": file_id,
-                "filename": upload_file.filename,
+                "filename": db_file.filename,
                 "rows": preview_rows,
                 "total_rows": len(rows),
             }
@@ -894,7 +944,8 @@ async def parse_file(file_id: str) -> JSONResponse:
 async def create_mapping(
     file_id: str = Query(..., min_length=1, description="ID of uploaded file"),
     template_id: str = Query(..., min_length=1, description="ID of template"),
-    column_mappings: dict[str, str] = None,
+    column_mappings: dict[str, str] = Body(default_factory=dict),
+    db: Session = Depends(get_db),
 ) -> JSONResponse:
     """
     Create a column-to-placeholder mapping.
@@ -902,7 +953,8 @@ async def create_mapping(
     Args:
         file_id: ID of uploaded data file
         template_id: ID of template to fill
-        column_mappings: Dictionary mapping placeholder names to column names
+        column_mappings: Dictionary mapping column names to placeholder names
+        db: Database session
 
     Returns:
         JSONResponse with created mapping data
@@ -911,16 +963,20 @@ async def create_mapping(
         HTTPException: 400 if mapping data is invalid
         HTTPException: 404 if file or template not found
     """
-    # Validate file exists
+    from uuid import UUID as UUID_TYPE
+    
+    # Validate file exists in database
     try:
-        file_uuid = UUID(file_id)
+        file_uuid = UUID_TYPE(file_id)
     except ValueError:
         raise HTTPException(
             status_code=404,
             detail=f"File not found: {file_id}"
         )
 
-    if file_uuid not in _uploaded_files:
+    file_repo = FileRepository(db)
+    db_file = file_repo.get_file_by_id(file_uuid)
+    if db_file is None:
         raise HTTPException(
             status_code=404,
             detail=f"File not found: {file_id}"
@@ -934,32 +990,24 @@ async def create_mapping(
             detail=f"Template not found: {template_id}"
         )
 
-    # Create mapping
+    # Create mapping in database
     try:
-        mapping = Mapping(
-            file_id=file_id,
-            template_id=template_id,
+        mapping_repo = MappingRepository(db)
+        db_mapping = mapping_repo.create_mapping(
+            file_id=file_uuid,
+            template_id=UUID_TYPE(template_id),
             column_mappings=column_mappings or {}
         )
-
-        # Store in memory
-        _mappings_storage[mapping.id] = {
-            "id": mapping.id,
-            "file_id": mapping.file_id,
-            "template_id": mapping.template_id,
-            "column_mappings": mapping.column_mappings,
-            "created_at": mapping.created_at.isoformat(),
-        }
 
         return JSONResponse(
             status_code=201,
             content={
                 "message": "Mapping created successfully",
-                "id": mapping.id,
-                "file_id": mapping.file_id,
-                "template_id": mapping.template_id,
-                "column_mappings": mapping.column_mappings,
-                "created_at": mapping.created_at.isoformat(),
+                "id": str(db_mapping.id),
+                "file_id": str(db_mapping.file_id),
+                "template_id": str(db_mapping.template_id),
+                "column_mappings": json.loads(db_mapping.column_mappings),
+                "created_at": db_mapping.created_at.isoformat() if db_mapping.created_at else None,
             }
         )
     except ValueError as e:

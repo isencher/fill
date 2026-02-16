@@ -14,7 +14,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import _uploaded_files, app
+from src.main import _file_storage, app
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def client() -> TestClient:
 def clear_storage() -> None:
     """Clear in-memory storage after each test."""
     yield
-    _uploaded_files.clear()
+    _file_storage.clear()
 
 
 class TestSimplifiedTemplateCards:

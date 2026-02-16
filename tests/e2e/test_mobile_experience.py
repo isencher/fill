@@ -8,7 +8,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import app, _uploaded_files
+from src.main import app, _file_storage
 
 
 @pytest.fixture
