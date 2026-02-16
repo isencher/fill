@@ -24,7 +24,7 @@ def client() -> TestClient:
 def clear_storage():
     """Clear in-memory storage before each test."""
     _file_storage.clear()
-    # Note: _template_store is a singleton, we don't clear it between tests
+    # Note: TemplateStore is a singleton, we don't clear it between tests
     yield
 
 
@@ -32,7 +32,7 @@ def clear_storage():
 def sample_file_id() -> str:
     """Create and return a sample uploaded file ID."""
     csv_content = b"Name,Email,Phone\nJohn,john@test.com,555-1234\nJane,jane@test.com,555-5678"
-    
+
     file_id = "test-file-uuid-1234"
     upload_file = UploadFile(
         id=file_id,
@@ -48,13 +48,14 @@ def sample_file_id() -> str:
 @pytest.fixture
 def sample_template_id() -> str:
     """Create and return a sample template ID."""
+    template_store = get_template_store()
     template = Template(
         name="Test Template",
         description="Test template for mapping",
         placeholders=["name", "email", "phone"],
         file_path="/templates/test.docx",
     )
-    saved = _template_store.save_template(template)
+    saved = template_store.save_template(template)
     return saved.id
 
 
