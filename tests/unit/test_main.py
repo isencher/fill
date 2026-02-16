@@ -22,7 +22,7 @@ def client() -> TestClient:
 
 
 class TestRootEndpoint:
-    """Tests for the root endpoint (upload page)."""
+    """Tests for the root endpoint (onboarding page)."""
 
     def test_root_returns_200(self, client: TestClient) -> None:
         """
@@ -36,7 +36,9 @@ class TestRootEndpoint:
 
     def test_root_returns_html(self, client: TestClient) -> None:
         """
-        Test that GET / returns HTML content (upload page).
+        Test that GET / returns HTML content (onboarding page).
+
+        After Step 11.2, the root endpoint serves the first-time user onboarding page.
 
         Args:
             client: FastAPI test client
@@ -44,19 +46,21 @@ class TestRootEndpoint:
         response = client.get("/")
         assert response.headers["content-type"].startswith("text/html")
         assert "<!DOCTYPE html>" in response.text
-        assert "Fill - 2D Table Data Auto-Filling" in response.text
+        # Check for onboarding content
+        assert "onboarding" in response.text.lower()
+        assert "script src=\"/static/onboarding.js\"" in response.text
 
-    def test_root_contains_upload_form(self, client: TestClient) -> None:
+    def test_root_contains_onboarding_elements(self, client: TestClient) -> None:
         """
-        Test that GET / contains upload form elements.
+        Test that GET / contains onboarding page elements.
 
         Args:
             client: FastAPI test client
         """
         response = client.get("/")
-        assert 'id="fileInput"' in response.text
-        assert 'id="uploadBtn"' in response.text
-        assert 'id="message"' in response.text
+        # Onboarding page should have these elements
+        assert "onboarding" in response.text.lower()
+        assert "static/onboarding.js" in response.text
 
 
 class TestAppConfiguration:

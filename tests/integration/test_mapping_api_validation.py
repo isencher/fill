@@ -6,6 +6,7 @@ Tests error handling and parameter passing for the mapping endpoint.
 
 import pytest
 from fastapi.testclient import TestClient
+from uuid import uuid4
 
 from src.main import app, _file_storage
 from src.services.template_store import get_template_store
@@ -33,13 +34,13 @@ def sample_file_id() -> str:
     """Create and return a sample uploaded file ID."""
     csv_content = b"Name,Email,Phone\nJohn,john@test.com,555-1234\nJane,jane@test.com,555-5678"
 
-    file_id = "test-file-uuid-1234"
+    file_id = str(uuid4())
     upload_file = UploadFile(
         id=file_id,
         filename="test.csv",
         content_type="text/csv",
         size=len(csv_content),
-        status=FileStatus.UPLOADED,
+        status=FileStatus.PENDING,
     )
     _file_storage.store(file_id, csv_content)
     return file_id
