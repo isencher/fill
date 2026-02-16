@@ -1,0 +1,376 @@
+/**
+ * UAT Framework Styles
+ * Styles for user acceptance testing UI components
+ */
+
+/* Feedback Modal */
+.uat-feedback-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: uat-fade-in 0.2s ease-out;
+}
+
+@keyframes uat-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.uat-feedback-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: uat-slide-up 0.3s ease-out;
+}
+
+@keyframes uat-slide-up {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.uat-feedback-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #2d3748;
+}
+
+.uat-feedback-content > p {
+    margin: 0 0 20px 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+/* Star Rating */
+.uat-rating {
+    margin-bottom: 20px;
+}
+
+.uat-rating > label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.uat-stars {
+    display: flex;
+    gap: 8px;
+}
+
+.uat-stars .star {
+    font-size: 32px;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    user-select: none;
+}
+
+.uat-stars .star:hover,
+.uat-stars .star.active {
+    color: #f6ad55;
+}
+
+/* Comments */
+.uat-comments {
+    margin-bottom: 20px;
+}
+
+.uat-comments > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.uat-comments textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.uat-comments textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Email */
+.uat-email {
+    margin-bottom: 20px;
+}
+
+.uat-email > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.uat-email input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.uat-email input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Actions */
+.uat-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.uat-submit {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.uat-submit:hover {
+    background: #5568d3;
+}
+
+.uat-cancel {
+    padding: 10px 20px;
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.uat-cancel:hover {
+    background: #cbd5e0;
+}
+
+/* UAT Toolbar (for testers) */
+.uat-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #2d3748;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+}
+
+.uat-toolbar-logo {
+    font-weight: 600;
+    color: #f6ad55;
+}
+
+.uat-toolbar-info {
+    flex: 1;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.uat-toolbar-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.uat-toolbar-btn {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.uat-toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.uat-toolbar-btn.recording {
+    background: #e53e3e;
+    animation: uat-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes uat-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* UAT Notification */
+.uat-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10001;
+    animation: uat-slide-in 0.3s ease-out;
+    max-width: 350px;
+}
+
+@keyframes uat-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.uat-notification-icon {
+    font-size: 24px;
+}
+
+.uat-notification-icon.success {
+    color: #48bb78;
+}
+
+.uat-notification-icon.error {
+    color: #e53e3e;
+}
+
+.uat-notification-icon.warning {
+    color: #ed8936;
+}
+
+.uat-notification-icon.info {
+    color: #4299e1;
+}
+
+.uat-notification-content {
+    flex: 1;
+}
+
+.uat-notification-title {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.uat-notification-message {
+    color: #718096;
+    font-size: 13px;
+}
+
+.uat-notification-close {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.uat-notification-close:hover {
+    color: #4a5568;
+}
+
+/* UAT Session Timer */
+.uat-timer {
+    font-family: monospace;
+    font-size: 14px;
+    color: #68d391;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .uat-feedback-content {
+        padding: 20px;
+        width: 95%;
+    }
+
+    .uat-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .uat-toolbar-actions {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .uat-toolbar-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .uat-notification {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .uat-feedback-modal,
+    .uat-toolbar,
+    .uat-notification {
+        display: none !important;
+    }
+}
