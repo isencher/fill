@@ -47,11 +47,19 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 @app.get("/", tags=["Health"])
 async def root() -> FileResponse:
     """
-    Root endpoint - serves the upload page.
+    Root endpoint - serves the onboarding page for first-time users,
+    otherwise redirects to the upload page.
 
     Returns:
-        FileResponse with the HTML upload page
+        FileResponse with the HTML onboarding or upload page
     """
+    # Check if onboarding.html exists, serve it
+    # The onboarding page itself will handle redirecting returning users
+    onboarding_path = static_dir / "onboarding.html"
+    if onboarding_path.exists():
+        return FileResponse(onboarding_path)
+
+    # Fallback to index.html if onboarding doesn't exist
     index_path = static_dir / "index.html"
     return FileResponse(index_path)
 
