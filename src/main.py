@@ -148,7 +148,7 @@ async def upload_file(
         content_type=content_type,
         size=file_size,
         file_path="",  # Will update after we know the ID
-        status="uploaded",
+        status=FileStatus.PENDING,
     )
     
     # Use database-generated ID for file path
