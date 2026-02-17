@@ -27,12 +27,25 @@ Fill 是一款智能表格数据填充工具，可以：
 
 ### 方式 1：问卷星表单（推荐）
 
-**请填写反馈问卷**：
-```
-📝 问卷链接：[待创建]
+**📝 请填写反馈问卷**：
 
-微信扫码：[二维码图片]
 ```
+📋 问卷链接：https://www.wenjuanxing.com/xxx/xxxxx
+
+⏰ 预计时间：5-10 分钟
+🎯 反馈重点：功能体验、易用性、Bug 报告、改进建议
+```
+
+**微信扫码**：
+```
+[二维码图片 - 创建表单后生成]
+```
+
+**📌 表单创建状态**：
+- ✅ 表单设计文档已创建（见 fill-dev-env/WENJUANXING_FORM_DESIGN.md）
+- ✅ 快速创建指南已准备（见 fill-dev-env/QUICK_START_WENJUANXING.md）
+- ⏳ 等待创建：访问 https://www.wenjuanxing.com 创建表单
+- ⏳ 等待发布：创建后更新此处的问卷链接和二维码
 
 **表单包含**：
 - 功能体验评价
@@ -165,6 +178,7 @@ Fill 是一款智能表格数据填充工具，可以：
 ---
 
 **相关文档**：
-- [发布说明](docs/beta-release-notes.md)（待创建）
-- [用户指南](docs/user-guide.md)（待创建）
+- [发布说明](docs/beta-release-notes.md)
+- [问卷星表单设计](../fill-dev-env/WENJUANXING_FORM_DESIGN.md)（完整 29 题版）
+- [快速创建指南](../fill-dev-env/QUICK_START_WENJUANXING.md)（简化 10 题版）
 - [更新日志](CHANGELOG.md)
