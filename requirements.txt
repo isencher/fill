@@ -1,23 +1,14 @@
-# Web Framework
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-python-multipart>=0.0.17
-
-# Document Processing
-openpyxl>=3.1.5
-python-docx>=1.1.2
-reportlab>=4.2.5
-
-# Testing (dev dependencies)
-pytest>=8.3.4
-pytest-cov>=6.0.0
-pytest-asyncio>=0.24.0
-pytest-playwright>=0.6.2
-httpx>=0.28.1
-
-# Code Quality
-black>=24.10.0
-isort>=5.13.2
-
-# Development
-python-dotenv>=1.0.1
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic
+pydantic-settings
+python-multipart
+pytest
+pytest-cov
+pytest-asyncio
+httpx
+aiofiles
+openpyxl
+alembic

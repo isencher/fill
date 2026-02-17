@@ -1,0 +1,64 @@
+{
+  "autonomy": {
+    "auto_threshold": 0.95,
+    "notify_threshold": 0.80,
+    "review_threshold": 0.50
+  },
+  "batching": {
+    "max_queue_size": 10,
+    "max_wait_minutes": 1440,
+    "priority_keywords": ["security", "core", "api"]
+  },
+  "operations": {
+    "add_function": {
+      "autonomy_level": "auto",
+      "test_required": true,
+      "rollback_enabled": true
+    },
+    "refactor_module": {
+      "autonomy_level": "notify",
+      "test_required": true,
+      "rollback_enabled": true,
+      "human_review_after": true
+    },
+    "modify_core_logic": {
+      "autonomy_level": "manual",
+      "test_required": true,
+      "rollback_enabled": true,
+      "require_explicit_approval": true
+    },
+    "fix_bug": {
+      "autonomy_level": "review",
+      "test_required": true,
+      "rollback_enabled": true
+    },
+    "add_dependency": {
+      "autonomy_level": "review",
+      "security_scan": true,
+      "license_check": true
+    },
+    "update_documentation": {
+      "autonomy_level": "auto",
+      "test_required": false
+    }
+  },
+  "path_rules": {
+    "src/core/**": {
+      "override_level": "manual"
+    },
+    "tests/**": {
+      "override_level": "auto"
+    },
+    "docs/**": {
+      "override_level": "auto"
+    },
+    "*.md": {
+      "override_level": "auto"
+    }
+  },
+  "rollback": {
+    "auto_rollback": true,
+    "rollback_triggers": ["test_failure", "security_alert", "performance_regression"],
+    "max_rollback_attempts": 3
+  }
+}

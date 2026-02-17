@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill - Match Data Fields to Template</title>
+    <link rel="stylesheet" href="/static/components/progress.css">
+    <link rel="stylesheet" href="/static/components/empty-state.css">
+    <link rel="stylesheet" href="/static/components/animations.css">
+    <link rel="stylesheet" href="/static/components/help-tooltip.css">
+    <link rel="stylesheet" href="/static/components/faq-modal.css">
+    <link rel="stylesheet" href="/static/components/tour.css">
+    <link rel="stylesheet" href="/static/mobile.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        .panel-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .file-info {
+            background: #f0f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .file-info-label {
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .file-info-value {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: auto;
+            max-height: 400px;
+        }
+
+        .data-table-wrapper {
+            overflow: auto;
+            max-height: 400px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background: #f8f9ff;
+            color: #333;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            color: #666;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        .placeholders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .placeholder-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .placeholder-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .placeholder-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .placeholder-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Confidence indicators */
+        .confidence-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .confidence-icon {
+            font-size: 14px;
+        }
+
+        /* Auto-match button */
+        .auto-match-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .auto-match-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .auto-match-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auto-match-btn .icon {
+            font-size: 18px;
+        }
+
+        /* Matched field highlighting */
+        .placeholder-item.matched-high {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .placeholder-item.matched-medium {
+            border-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .placeholder-item.matched-low {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        /* Business-friendly placeholder display */
+        .placeholder-description {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .technical-info {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .buttons {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            grid-column: 1 / -1;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>Match Data Fields to Template</h1>
+                <a href="/" class="back-link">← Back to Upload</a>
+            </div>
+            <div id="progressContainer"></div>
+        </div>
+
+        <div id="loadingState" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <div>Loading file data...</div>
+        </div>
+
+        <div id="contentArea" style="display: none;">
+            <div class="content">
+                <!-- Data Preview Panel -->
+                <div class="panel">
+                    <h2 class="panel-title">Data Preview (First 5 Rows)</h2>
+
+                    <div class="file-info">
+                        <div class="file-info-label">File Name</div>
+                        <div class="file-info-value" id="fileName">-</div>
+                        <div style="margin-top: 10px;"></div>
+                        <div class="file-info-label">File ID</div>
+                        <div class="file-info-value" id="fileId">-</div>
+                    </div>
+
+                    <div class="data-table-wrapper">
+                        <table class="data-table" id="dataTable">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Placeholders Panel -->
+                <div class="panel">
+                    <h2 class="panel-title">Template Fields</h2>
+
+                    <div class="file-info">
+                        <div class="file-info-label">Template</div>
+                        <div class="file-info-value" id="templateName">-</div>
+                        <div style="margin-top: 10px;"></div>
+                        <div class="file-info-label">Template ID</div>
+                        <div class="file-info-value" id="templateId">-</div>
+                    </div>
+
+                    <button class="auto-match-btn" id="autoMatchBtn">
+                        <span class="icon">✨</span>
+                        <span>Auto-Match Fields</span>
+                    </button>
+
+                    <div class="placeholders-list" id="placeholdersList"></div>
+                </div>
+
+                <!-- Message -->
+                <div class="message" id="message"></div>
+
+                <!-- Buttons -->
+                <div class="buttons">
+                    <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveMappingBtn">Save Mapping</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="emptyState" style="display: none;"></div>
+    </div>
+
+    <script src="/static/components/progress.js"></script>
+    <script src="/static/components/empty-state.js"></script>
+    <script src="/static/components/skeleton.js"></script>
+    <script>
+        // Initialize progress indicator for mapping page
+        document.addEventListener('DOMContentLoaded', function() {
+            const progress = initProgressIndicator({
+                currentStep: 'mapping',
+                completedSteps: ['upload', 'template']
+            });
+
+            // Make completed steps clickable
+            const steps = document.querySelectorAll('.progress-step.completed');
+            steps.forEach(step => {
+                step.classList.add('clickable');
+                step.addEventListener('click', () => {
+                    const stepId = step.dataset.step;
+                    progress.navigateToStep(stepId);
+                });
+            });
+
+            // Auto-start tour for first-time users
+            if (typeof autoStartTour === 'function') {
+                autoStartTour('mapping');
+            }
+        });
+    </script>
+    <script src="/static/components/help-tooltip.js"></script>
+    <script src="/static/components/faq-modal.js"></script>
+    <script src="/static/components/tour.js"></script>
+    <script src="/static/mapping.js"></script>
+</body>
+</html>

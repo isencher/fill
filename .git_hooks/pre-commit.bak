@@ -1,0 +1,46 @@
+#!/bin/bash
+# Git Pre-commit Hook - 自动化开发规则检查
+# 每次提交前自动执行规则检查，无需人类主动记忆
+
+set -e
+
+echo "🔍 自动化开发规则检查..."
+
+# 获取暂存的文件
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -v '\.json\|\.md\|\.toml' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    echo "✓ 无代码文件需要检查"
+    exit 0
+fi
+
+echo "检查文件:"
+echo "$STAGED_FILES" | sed 's/^/  - /'
+
+# 运行执行引擎检查
+python3 executor.py --check-only "$STAGED_FILES"
+
+# 检查信任分数 - 如果有操作成功率 >95%，建议升级
+if [ -f .trust/scores.json ]; then
+    echo ""
+    echo "📊 当前信任状态:"
+    python3 -c "
+import json
+d = json.load(open('.trust/scores.json'))
+for op, hist in d.get('operation_history', {}).items():
+    if len(hist) >= 5:
+        rate = sum(h['success'] for h in hist[-20:]) / min(len(hist), 20)
+        status = '✓' if rate >= 0.95 else '→' if rate >= 0.8 else '!'
+        print(f'  {status} {op}: {rate:.1%}')
+" 2>/dev/null || true
+fi
+
+# 检查决策队列
+QUEUE_SIZE=$(find decisions -type f 2>/dev/null | wc -l)
+if [ "$QUEUE_SIZE" -gt 5 ]; then
+    echo ""
+    echo "⚠️  决策队列中有 $QUEUE_SIZE 项待处理，建议先批量审批"
+fi
+
+echo "✓ 规则检查完成"
+exit 0

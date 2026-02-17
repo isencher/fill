@@ -1,0 +1,251 @@
+/**
+ * Global Progress Indicator Styles
+ * Consistent progress styling across all pages
+ */
+
+.progress-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 20px 0;
+    padding: 0 20px;
+    position: relative;
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: default;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+/* Step Icon */
+.step-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+/* Step Label */
+.step-label {
+    white-space: nowrap;
+}
+
+/* Step Connector (line between steps) */
+.step-connector {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 3px;
+    background: #e0e0e0;
+    z-index: -1;
+}
+
+/* Completed State */
+.progress-step.completed {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.progress-step.completed .step-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.progress-step.completed .step-connector {
+    background: linear-gradient(90deg, #28a745 0%, #e0e0e0 100%);
+}
+
+/* Active State */
+.progress-step.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+}
+
+.progress-step.active .step-icon {
+    background: rgba(255, 255, 255, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Pending State */
+.progress-step.pending {
+    background: #f5f5f5;
+    color: #999;
+}
+
+.progress-step.pending .step-icon {
+    background: #e0e0e0;
+}
+
+.progress-step.pending .step-connector {
+    background: #e0e0e0;
+}
+
+/* Clickable Steps */
+.progress-step.clickable {
+    cursor: pointer;
+}
+
+.progress-step.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.progress-step.completed.clickable:hover,
+.progress-step.active.clickable:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .progress-indicator {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .progress-step {
+        padding: 10px 16px;
+        font-size: 12px;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .step-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .step-connector {
+        display: none;
+    }
+
+    .step-label {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-step {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .step-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .progress-step {
+        min-width: 44px;
+        justify-content: center;
+    }
+}
+
+/* Animation for step transitions */
+.progress-step {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Container Styles */
+#progressContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#progressContainer .progress-indicator {
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Integration with existing header styles */
+.header .progress-indicator {
+    margin: 15px 0;
+}
+
+.header #progressContainer {
+    margin-top: 15px;
+}
+
+/* Standalone container (when no header exists) */
+body > #progressContainer:first-child {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Accessibility */
+.progress-step:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+.progress-step[aria-current="step"] {
+    position: relative;
+}
+
+/* Print styles */
+@media print {
+    .progress-indicator {
+        display: none;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .progress-step.pending {
+        background: #2a2a2a;
+        color: #888;
+    }
+
+    .progress-step.pending .step-icon {
+        background: #3a3a3a;
+    }
+}
