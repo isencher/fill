@@ -5,6 +5,9 @@ This requires the development server to be running on localhost:3000.
 """
 
 import pytest
+
+pytest.importorskip("playwright.sync_api")
+
 from playwright.sync_api import Page, expect
 
 
@@ -32,7 +35,7 @@ def test_swagger_ui_accessible_in_browser(page: Page) -> None:
     page.wait_for_load_state("networkidle")
 
     # Check page title
-    expect(page).to_have_title(/swagger/i)
+    expect(page).to_have_title("Fill API")
 
     # Verify Swagger UI is loaded by checking for common elements
     # Swagger UI typically has a "try it out" button or API information
