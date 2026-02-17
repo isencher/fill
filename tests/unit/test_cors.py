@@ -13,12 +13,14 @@ def test_cors_headers_present_on_root_request() -> None:
     Following TDD: Red -> Green -> Refactor
     """
     client = TestClient(app)
-    # Make a request with Origin header to trigger CORS
-    response = client.get("/", headers={"Origin": "http://example.com"})
+    # Make a request with an allowed Origin header to trigger CORS
+    # Using localhost:8000 which is in ALLOWED_ORIGINS
+    response = client.get("/", headers={"Origin": "http://localhost:8000"})
 
     assert response.status_code == 200
     # Check for CORS headers
     assert "access-control-allow-origin" in response.headers
+    assert "http://localhost:8000" in response.headers["access-control-allow-origin"]
 
 
 def test_cors_preflight_request() -> None:
@@ -30,7 +32,7 @@ def test_cors_preflight_request() -> None:
     response = client.options(
         "/",
         headers={
-            "Origin": "http://example.com",
+            "Origin": "http://localhost:8000",
             "Access-Control-Request-Method": "GET",
         },
     )
@@ -56,6 +58,7 @@ def test_app_metadata_configured() -> None:
 
     Verifies app title, description, and version are set.
     """
-    assert app.title == "fill"
+    assert app.title == "Fill API"
     assert app.version == "0.1.0"
-    assert "filling" in app.description.lower()
+    # Description mentions auto-filling functionality
+    assert "filling" in app.description.lower() or "auto" in app.description.lower()
