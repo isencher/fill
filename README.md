@@ -1,8 +1,60 @@
-# 自动化开发执行系统
+# Fill - 智能表格数据填充工具
 
-> **核心理念**：知识不是文档，而是持续执行的行为
+> **自动化 + 智能填充**：让重复的文档工作自动化
 
-这个系统将负反馈控制理念转化为实际可执行的开发工作流，确保规则不仅仅是纸上谈兵。
+Fill 是一款智能工具，可以自动将 Excel/CSV 数据填充到模板文件中，节省大量重复工作时间。
+
+## 🎯 核心功能
+
+- 📤 **智能上传**：支持 CSV 和 Excel 文件
+- 🎯 **智能映射**：自动识别并映射字段名
+- 📋 **内置模板**：发票、合同、报表等
+- ⚡ **批量处理**：一次性生成多个文件
+- 📥 **快速下载**：批量下载所有输出
+
+## 📚 文档导航
+
+- [用户指南](#)
+- [API 文档](api.md)
+- [开发文档](CLAUDE_QUICKREF.md)
+- [Beta 测试反馈](BETA_FEEDBACK.md) ← **正在测试中！**
+- [更新日志](CHANGELOG.md)
+
+## 🚀 快速开始
+
+```bash
+# 1. 安装依赖
+pip install -r requirements.txt
+
+# 2. 启动应用
+python3 start.py
+
+# 3. 访问应用
+# 浏览器打开 http://localhost:8000
+```
+
+## 🧪 测试
+
+```bash
+# 运行所有测试
+python3 -m pytest
+
+# 运行单元测试
+python3 -m pytest tests/unit
+
+# 查看覆盖率
+python3 -m pytest --cov=src tests/
+```
+
+## 📦 项目信息
+
+- **版本**：v0.1.0-beta
+- **仓库**：https://github.com/isencher/fill
+- **文档**：[GitHub Wiki](https://github.com/isencher/fill/wiki)
+
+## 🏗️ 自动化开发系统
+
+Fill 使用负反馈控制系统进行开发，详情见：[fill-dev-env](https://github.com/isencher/fill-dev-env)
 
 ## 系统架构
 
