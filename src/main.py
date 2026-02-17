@@ -402,6 +402,7 @@ from src.services.fuzzy_matcher import FuzzyMatcher
 async def suggest_mapping(
     file_id: str = Query(..., description="ID of uploaded data file"),
     template_id: str = Query(..., description="ID of template"),
+    db: Session = Depends(get_db),
 ) -> JSONResponse:
     """
     Suggest column-to-placeholder mappings based on fuzzy matching.
@@ -421,8 +422,10 @@ async def suggest_mapping(
         file_uuid = UUID(file_id)
     except ValueError:
         raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
-    
-    if file_uuid not in _uploaded_files:
+
+    # Check if file content exists in storage
+    file_content = _file_storage.get(file_uuid)
+    if not file_content:
         raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
     
     # Validate template exists
@@ -436,11 +439,6 @@ async def suggest_mapping(
     if db_file is None:
         raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
 
-    file_content = _file_storage.get(file_uuid)
-
-    if not file_content:
-        raise HTTPException(status_code=404, detail=f"File content not found: {file_id}")
-    
     try:
         from src.services.parser_factory import get_parser
 

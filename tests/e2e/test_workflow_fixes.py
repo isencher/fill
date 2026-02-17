@@ -6,9 +6,16 @@ Tests cover the complete user journey fixes:
 2. Upload page redirects to template selection (not broken mapping page)
 3. Template selection passes both file_id and template_id to mapping
 4. Mapping page shows confirmation before processing
+
+Note: These tests require Playwright browser automation.
+Run in Docker container with Playwright installed, or skip if unavailable.
 """
 
 import pytest
+
+# Skip all tests in this module if playwright is not installed
+pytest.importorskip("playwright.sync_api")
+
 from playwright.sync_api import Page, expect
 
 
