@@ -38,12 +38,16 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "e2e: End-to-end tests",
+    "playwright: mark test as requiring Playwright browser automation",
 ]
 filterwarnings = [
     "error",
     # Ignore ResourceWarning from StreamingResponse in TestClient (known FastAPI issue)
     "ignore::ResourceWarning",
     "ignore::pytest.PytestUnraisableExceptionWarning",
+    # Ignore Pydantic deprecation warnings (class-based config in legacy code)
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+    "ignore::DeprecationWarning",
 ]
 
 [tool.coverage.run]

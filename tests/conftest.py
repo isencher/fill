@@ -2,16 +2,62 @@
 Pytest configuration and shared fixtures for E2E tests.
 """
 
-import pytest
+import subprocess
+import time
 import warnings
+
+# Filter warnings BEFORE importing app
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=ResourceWarning, message=".*Unclosed.*MemoryObjectReceiveStream.*")
+
 from fastapi.testclient import TestClient
 
+import pytest
 from src.main import app
 
 
-# Ignore ResourceWarning from StreamingResponse in TestClient
-# This is a known issue with FastAPI TestClient and streaming responses
-warnings.filterwarnings("ignore", category=ResourceWarning, message=".*Unclosed.*MemoryObjectReceiveStream.*")
+@pytest.fixture(scope="session")
+def server():
+    """
+    Start a uvicorn server for Playwright E2E tests.
+
+    This fixture starts the server in the background before running Playwright tests
+    and stops it after all tests complete.
+    """
+    import socket
+
+    # Start uvicorn server in background
+    proc = subprocess.Popen(
+        ["uvicorn", "src.main:app", "--port", "8000", "--log-level", "error"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    # Wait for server to start with retry logic
+    max_attempts = 30
+    for attempt in range(max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)
+                if s.connect_ex(("localhost", 8000)) == 0:
+                    break
+        except:
+            pass
+        time.sleep(0.5)
+    else:
+        proc.terminate()
+        proc.wait()
+        raise RuntimeError("Server failed to start after 15 seconds")
+
+    yield  # Server is now running
+
+    # Cleanup: stop the server
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
 
 
 # Check if playwright is available for browser-based E2E tests

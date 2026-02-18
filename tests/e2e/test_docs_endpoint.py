@@ -82,5 +82,5 @@ async def test_openapi_json_endpoint() -> None:
         assert "openapi" in schema
         assert "info" in schema
         assert "paths" in schema
-        assert schema["info"]["title"] == "fill"
+        assert schema["info"]["title"] == "Fill API"
         assert schema["info"]["version"] == "0.1.0"
