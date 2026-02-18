@@ -338,8 +338,8 @@ function renderPlaceholdersList(template, suggestions = null) {
 
             const icon = document.createElement('span');
             icon.className = 'confidence-icon';
-            icon.textContent = suggestion.level === 'high' ? '🟢' :
-                              suggestion.level === 'medium' ? '🟡' : '🔴';
+            icon.textContent = suggestion.level === 'high' ? '✅' :
+                              suggestion.level === 'medium' ? '⚠️' : '🔴';
             indicator.appendChild(icon);
 
             const label2 = document.createElement('span');

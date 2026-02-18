@@ -53,7 +53,6 @@ class TestTemplateSelectionPage:
                          "file_id=test-file-123" in url and 
                          "template_id=" in url)
     
-    @pytest.mark.xfail(reason="Custom template upload not yet implemented")
     def test_template_upload_option_available(self, page: Page, server):
         """Should have option to upload custom template."""
         page.goto("http://localhost:8000/templates.html?file_id=test-file-123")
@@ -109,7 +108,6 @@ class TestUploadPageRedirectFix:
 class TestMappingConfirmationFlow:
     """Test mapping page shows confirmation before processing."""
 
-    @pytest.mark.xfail(reason="Mapping page preview not yet implemented")
     def test_mapping_page_shows_preview(self, page: Page, server):
         """Should show data preview and mappings before processing."""
         # Pre-seed with file and template
@@ -119,7 +117,6 @@ class TestMappingConfirmationFlow:
         expect(page.locator("text=数据预览").first).to_be_visible()
         expect(page.locator("table")).to_be_visible()
 
-    @pytest.mark.xfail(reason="Mapping page confirmation not yet implemented")
     def test_mapping_page_requires_confirmation(self, page: Page, server):
         """Should require explicit confirmation before generating."""
         page.goto("http://localhost:8000/mapping.html?file_id=demo&template_id=demo")
@@ -141,7 +138,6 @@ class TestMappingConfirmationFlow:
 class TestDualEntryPoints:
     """Test both workflow entry points work."""
 
-    @pytest.mark.xfail(reason="Entry point UI not yet implemented")
     def test_data_first_entry_point(self, page: Page, server):
         """User can start by uploading data first."""
         page.goto("http://localhost:8000/")
@@ -149,7 +145,6 @@ class TestDualEntryPoints:
         # Should have data upload option
         expect(page.locator("text=我有数据文件").first).to_be_visible()
 
-    @pytest.mark.xfail(reason="Entry point UI not yet implemented")
     def test_template_first_entry_point(self, page: Page, server):
         """User can start by selecting template first."""
         page.goto("http://localhost:8000/")
@@ -172,7 +167,6 @@ class TestDualEntryPoints:
 class TestSmartMappingSuggestions:
     """Test smart mapping suggestions with confidence levels."""
 
-    @pytest.mark.xfail(reason="Confidence indicators not yet implemented")
     def test_high_confidence_mapping_shows_checkmark(self, page: Page, server):
         """High confidence matches should show checkmark."""
         page.goto("http://localhost:8000/mapping.html?file_id=demo&template_id=demo")
@@ -180,7 +174,7 @@ class TestSmartMappingSuggestions:
         # High confidence match
         expect(page.locator("text=✅").first).to_be_visible()
 
-    @pytest.mark.xfail(reason="Confidence indicators not yet implemented")
+    @pytest.mark.xfail(reason="Accept button for medium confidence not yet implemented")
     def test_medium_confidence_shows_warning(self, page: Page, server):
         """Medium confidence should show warning and require confirmation."""
         page.goto("http://localhost:8000/mapping.html?file_id=demo&template_id=demo")
@@ -189,7 +183,6 @@ class TestSmartMappingSuggestions:
         expect(page.locator("text=⚠️").first).to_be_visible()
         expect(page.locator("button:text('接受')").first).to_be_visible()
 
-    @pytest.mark.xfail(reason="Confidence indicators not yet implemented")
     def test_low_confidence_requires_manual_selection(self, page: Page, server):
         """Low confidence should force manual selection."""
         page.goto("http://localhost:8000/mapping.html?file_id=demo&template_id=demo")

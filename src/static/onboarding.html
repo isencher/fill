@@ -266,7 +266,37 @@
             </div>
         </div>
 
-        <div class="action-buttons">
+        <div style="margin: 32px 0; text-align: center;">
+            <h2 style="color: #333; margin-bottom: 24px;">Choose your starting point</h2>
+        </div>
+
+        <div class="steps-container">
+            <div class="step-card" onclick="window.location.href='/index.html'" style="cursor: pointer;">
+                <div class="step-icon">📊</div>
+                <h3 class="step-title">我有数据文件</h3>
+                <p class="step-description">
+                    上传您的 Excel 或 CSV 数据文件，开始填充流程
+                </p>
+            </div>
+
+            <div class="step-card" onclick="window.location.href='/templates.html?demo=true'" style="cursor: pointer;">
+                <div class="step-icon">📄</div>
+                <h3 class="step-title">从示例开始</h3>
+                <p class="step-description">
+                    使用内置示例模板，快速了解系统功能
+                </p>
+            </div>
+
+            <div class="step-card" onclick="window.location.href='/templates.html?mode=custom'" style="cursor: pointer;">
+                <div class="step-icon">📁</div>
+                <h3 class="step-title">我有模板文件</h3>
+                <p class="step-description">
+                    上传您自己的 Word 模板，自定义填充规则
+                </p>
+            </div>
+        </div>
+
+        <div class="action-buttons" style="display: none;">
             <button class="btn btn-primary" id="startBtn">Start Creating Documents →</button>
             <button class="btn btn-secondary" id="skipBtn">Skip Tour</button>
         </div>

@@ -404,7 +404,7 @@
             <div class="content">
                 <!-- Data Preview Panel -->
                 <div class="panel">
-                    <h2 class="panel-title">Data Preview (First 5 Rows)</h2>
+                    <h2 class="panel-title">📊 数据预览 (前5行)</h2>
 
                     <div class="file-info">
                         <div class="file-info-label">File Name</div>
@@ -445,10 +445,20 @@
                 <!-- Message -->
                 <div class="message" id="message"></div>
 
+                <!-- Confirmation Section -->
+                <div class="confirmation-section" id="confirmationSection" style="background: #f8f9ff; padding: 20px; border-radius: 12px; border: 2px solid #667eea; margin: 20px 0;">
+                    <h3 style="margin-bottom: 10px; color: #333;">确认生成</h3>
+                    <p style="color: #666; margin-bottom: 15px;">将生成 <strong id="outputFileCount">1</strong> 个填充文件，预计耗时 <strong id="estimatedTime">几秒</strong></p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" id="cancelConfirmBtn">返回修改</button>
+                        <button class="btn btn-primary" id="confirmGenerateBtn" style="background: #28a745;">确认生成</button>
+                    </div>
+                </div>
+
                 <!-- Buttons -->
                 <div class="buttons">
                     <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                    <button class="btn btn-primary" id="saveMappingBtn">Save Mapping</button>
+                    <button class="btn btn-primary" id="saveMappingBtn">保存并预览生成</button>
                 </div>
             </div>
         </div>
