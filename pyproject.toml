@@ -41,6 +41,9 @@ markers = [
 ]
 filterwarnings = [
     "error",
+    # Ignore ResourceWarning from StreamingResponse in TestClient (known FastAPI issue)
+    "ignore::ResourceWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
 ]
 
 [tool.coverage.run]

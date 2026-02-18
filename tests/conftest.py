@@ -3,9 +3,15 @@ Pytest configuration and shared fixtures for E2E tests.
 """
 
 import pytest
+import warnings
 from fastapi.testclient import TestClient
 
 from src.main import app
+
+
+# Ignore ResourceWarning from StreamingResponse in TestClient
+# This is a known issue with FastAPI TestClient and streaming responses
+warnings.filterwarnings("ignore", category=ResourceWarning, message=".*Unclosed.*MemoryObjectReceiveStream.*")
 
 
 # Check if playwright is available for browser-based E2E tests
