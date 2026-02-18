@@ -100,7 +100,7 @@ function showSection(section) {
     if (section === 'loading') {
         loadingState.style.display = 'block';
     } else if (section === 'content') {
-        contentArea.style.display = 'block';
+        contentArea.style.setProperty('display', 'block', 'important');
     } else if (section === 'empty') {
         emptyState.style.display = 'block';
     }
@@ -608,19 +608,21 @@ function cancel() {
 
 // Initialize page
 async function init() {
+    console.log('[init] Starting with fileId:', fileId, 'templateId:', templateId);
+
     // Validate parameters with helpful error messages
     if (!fileId && !templateId) {
         showEmptyState('NO_FILE_OR_TEMPLATE');
         showSection('empty');
         return;
     }
-    
+
     if (!fileId) {
         showEmptyState('NO_FILE');
         showSection('empty');
         return;
     }
-    
+
     if (!templateId) {
         showEmptyState('NO_TEMPLATE');
         showSection('empty');
@@ -634,6 +636,10 @@ async function init() {
         loadFileData(),
         loadTemplateData()
     ]);
+
+    console.log('[init] fileResult:', fileResult ? 'loaded' : 'failed');
+    console.log('[init] templateResult:', templateResult ? 'loaded' : 'failed');
+    console.log('[init] columns:', columns);
 
     // Check if data loaded successfully
     if (!fileResult) {
@@ -654,6 +660,7 @@ async function init() {
 
     // For demo data, auto-generate suggestions
     if (fileId === 'demo' && templateId === 'demo') {
+        console.log('[init] Generating demo suggestions');
         // Generate simple suggestions: match columns to placeholders
         const suggestions = [];
         templateResult.placeholders.forEach(placeholder => {
@@ -677,11 +684,31 @@ async function init() {
             }
         });
 
+        console.log('[init] Generated suggestions:', suggestions);
+
         // Re-render with suggestions
         renderPlaceholdersList(templateResult, suggestions);
     }
 
+    console.log('[init] Showing content section');
     showSection('content');
+
+    // For demo data, ensure content is visible after a short delay
+    if (fileId === 'demo' && templateId === 'demo') {
+        setTimeout(() => {
+            const contentAreaEl = document.getElementById('contentArea');
+            const loadingEl = document.getElementById('loadingState');
+            console.log('[demo-delay] Forcing contentArea display');
+            if (contentAreaEl) {
+                contentAreaEl.style.setProperty('display', 'block', 'important');
+                console.log('[demo-delay] contentArea display:', contentAreaEl.style.display);
+            }
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+                console.log('[demo-delay] loadingState display:', loadingEl.style.display);
+            }
+        }, 500);
+    }
 }
 
 // Event listeners
