@@ -194,6 +194,26 @@ function showEmptyState(type, customMessage = null) {
 // Parse file to get data preview
 async function loadFileData() {
     try {
+        // Special handling for demo data
+        if (fileId === 'demo') {
+            const demoData = {
+                rows: [
+                    { '客户名称': '张三', '金额': '1000', '日期': '2024-01-01' },
+                    { '客户名称': '李四', '金额': '2000', '日期': '2024-01-02' },
+                    { '客户名称': '王五', '金额': '1500', '日期': '2024-01-03' },
+                    { '客户名称': '赵六', '金额': '3000', '日期': '2024-01-04' },
+                    { '客户名称': '孙七', '金额': '2500', '日期': '2024-01-05' }
+                ],
+                total_rows: 5
+            };
+            // Store data and set columns
+            fileData = demoData;
+            columns = ['客户名称', '金额', '日期'];
+            fileName.textContent = 'demo_data.csv';
+            fileIdEl.textContent = 'demo';
+            return demoData;
+        }
+
         const response = await fetch(`/api/v1/parse/${fileId}`);
         if (!response.ok) {
             throw new Error('Failed to parse file');
@@ -228,6 +248,20 @@ async function loadFileData() {
 // Load template data
 async function loadTemplateData() {
     try {
+        // Special handling for demo template
+        if (templateId === 'demo') {
+            const demoTemplate = {
+                id: 'demo',
+                name: '🧾 示例发票模板',
+                description: '标准发票模板（示例）',
+                placeholders: ['客户名称', '金额', '日期', '发票号码']
+            };
+            templateData = demoTemplate;
+            templateName.textContent = demoTemplate.name;
+            templateIdEl.textContent = 'demo';
+            return demoTemplate;
+        }
+
         // Check if it's a built-in template first
         if (BUILT_IN_TEMPLATES[templateId]) {
             templateData = BUILT_IN_TEMPLATES[templateId];
@@ -235,7 +269,7 @@ async function loadTemplateData() {
             templateIdEl.textContent = templateId;
             return templateData;
         }
-        
+
         // Otherwise fetch from server
         const response = await fetch(`/api/v1/templates/${templateId}`);
         if (!response.ok) {
@@ -254,7 +288,6 @@ async function loadTemplateData() {
         console.error('Error loading template data:', error);
         showMessage('Failed to load template data: ' + error.message, 'error');
         return null;
-    }
 }
 
 // Render data preview table
@@ -346,6 +379,21 @@ function renderPlaceholdersList(template, suggestions = null) {
             label2.textContent = suggestion.level === 'high' ? 'High Match' :
                                suggestion.level === 'medium' ? 'Possible Match' : 'Low Match';
             indicator.appendChild(label2);
+
+            // Add accept button for medium confidence
+            if (suggestion.level === 'medium') {
+                const acceptBtn = document.createElement('button');
+                acceptBtn.className = 'accept-btn';
+                acceptBtn.textContent = '接受';
+                acceptBtn.style.cssText = 'margin-left: 10px; padding: 4px 12px; font-size: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;';
+                acceptBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    select.value = suggestion.suggested_column;
+                    select.dispatchEvent(new Event('change'));
+                    acceptBtn.remove();
+                };
+                indicator.appendChild(acceptBtn);
+            }
 
             labelContainer.appendChild(indicator);
         }
@@ -603,6 +651,35 @@ async function init() {
     // Render UI
     renderDataTable(fileResult);
     renderPlaceholdersList(templateResult);
+
+    // For demo data, auto-generate suggestions
+    if (fileId === 'demo' && templateId === 'demo') {
+        // Generate simple suggestions: match columns to placeholders
+        const suggestions = [];
+        templateResult.placeholders.forEach(placeholder => {
+            const matchedColumn = columns.find(col => col === placeholder);
+            if (matchedColumn) {
+                suggestions.push({
+                    placeholder: placeholder,
+                    suggested_column: matchedColumn,
+                    level: 'high'
+                });
+            } else {
+                // Try partial match
+                const partialMatch = columns.find(col => col.includes(placeholder) || placeholder.includes(col));
+                if (partialMatch) {
+                    suggestions.push({
+                        placeholder: placeholder,
+                        suggested_column: partialMatch,
+                        level: 'medium'
+                    });
+                }
+            }
+        });
+
+        // Re-render with suggestions
+        renderPlaceholdersList(templateResult, suggestions);
+    }
 
     showSection('content');
 }
