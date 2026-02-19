@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Demo Data</title>
+</head>
+<body>
+    <h1>Demo Data Debug Test</h1>
+    <p>Open browser console to see debug output</p>
+    <p>File ID: demo, Template ID: demo</p>
+
+    <iframe id="testFrame" src="/mapping.html?file_id=demo&template_id=demo" style="width: 100%; height: 600px;"></iframe>
+
+    <script>
+        // Wait for iframe to load
+        setTimeout(() => {
+            const iframe = document.getElementById('testFrame');
+            iframe.contentWindow.postMessage({action: 'getDebugInfo'}, '*');
+        }, 5000);
+    </script>
+</body>
+</html>
