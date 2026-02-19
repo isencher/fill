@@ -77,7 +77,8 @@ def check_project_structure():
         "src/static/index.html",
         "src/static/templates.html",
         "src/static/mapping.html",
-        "src/static/processing.html",
+        "src/static/onboarding.html",  # 首次引导页面
+        # Note: processing.html 功能已整合到 mapping.html
         # 文档
         "PROJECT_CONTEXT.md",
         "QUICK_REFERENCE.md",
@@ -112,30 +113,48 @@ def check_api_endpoints():
 
     content = main_py.read_text()
 
-    required_endpoints = [
-        '@app.get("/")',
-        '@app.post("/api/v1/upload")',
-        '@app.get("/api/v1/files")',
-        '@app.get("/api/v1/templates")',
-        '@app.post("/api/v1/templates")',
-        '@app.post("/api/v1/parse")',
-        '@app.post("/api/v1/suggest-mapping")',
-        '@app.post("/api/v1/mappings")',
-        '@app.post("/api/v1/jobs")',
+    # 统计所有 @app 装饰器
+    import re
+    app_decorators = re.findall(r'^@app\.(?:get|post|put|delete|patch)\s*\(', content, re.MULTILINE)
+    endpoint_count = len(app_decorators)
+
+    print(f"发现 {endpoint_count} 个 API 端点")
+
+    # 检查关键端点是否存在（使用宽松匹配）
+    critical_endpoints = [
+        ('/', '健康检查端点'),
+        ('upload', '文件上传端点'),
+        ('files', '文件列表端点'),
+        ('templates', '模板管理端点'),
+        ('parse', '文件解析端点'),
+        ('suggest', '智能匹配端点'),
+        ('mappings', '字段映射端点'),
+        ('outputs', '输出文件端点'),  # 使用 outputs 而不是 jobs
     ]
 
     missing = []
-    for endpoint in required_endpoints:
-        if endpoint in content:
-            print(f"✅ {endpoint}")
+    for endpoint, description in critical_endpoints:
+        # 在 @app 装饰器中搜索端点路径
+        pattern = rf'@app\.(?:get|post)\s*\(\s*["\'][^"\']*{endpoint}[^"\']*["\']'
+        if re.search(pattern, content):
+            print(f"✅ {description} ({endpoint})")
         else:
-            print(f"❌ {endpoint} 缺失")
+            print(f"❌ {description} ({endpoint})")
             missing.append(endpoint)
 
     if missing:
-        print(f"\n⚠️  警告: 缺少 {len(missing)} 个 API 端点")
+        print(f"\n⚠️  警告: 缺少 {len(missing)} 个关键端点")
         print("   这可能是简化版本！请阅读 PROJECT_CONTEXT.md")
         return False
+
+    # 检查端点总数
+    if endpoint_count < 15:
+        print(f"\n⚠️  警告: 端点数量过少 ({endpoint_count} < 15)")
+        print("   完整版本应该有 17+ 个端点")
+        print("   这可能是简化版本！请阅读 PROJECT_CONTEXT.md")
+        return False
+
+    print(f"\n✅ 端点数量正常 ({endpoint_count} 个)")
     return True
 
 
