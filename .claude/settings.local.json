@@ -6,7 +6,13 @@
       "Bash(python3:*)",
       "Bash(pip install:*)",
       "Bash(git init:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(source:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(git push:*)",
+      "Bash(claude:*)",
+      "Bash(pytest:*)"
     ]
   }
 }

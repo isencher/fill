@@ -7,20 +7,43 @@
     }
   },
   "hooks": {
-    "PreToolUse": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "pre", "--input", "{input}"],
-      "async": true
-    },
-    "PostToolUse": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "post", "--input", "{input}"],
-      "async": true
-    },
-    "UserPromptSubmit": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "prompt", "--input", "{input}"],
-      "async": false
-    }
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "pre", "--input", "{input}"],
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "post", "--input", "{input}"],
+            "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "prompt", "--input", "{input}"],
+            "async": false
+          }
+        ]
+      }
+    ]
   }
 }
