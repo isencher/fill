@@ -478,6 +478,27 @@ refactor: code refactoring
 chore: maintenance tasks
 ```
 
+**⚠️ 重要: 不使用 Co-Authored-By**
+```bash
+# ❌ 错误做法
+git commit -m "feat: add new feature
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+# ✅ 正确做法
+git commit -m "feat: add new feature
+
+Description of the feature and implementation details."
+```
+
+**原因**:
+- 项目采用严格的作者责任制度
+- 每个提交应该有明确的单一作者
+- Co-Authored-By 会模糊责任归属
+- 便于代码审查和问题追踪
+
+**例外情况**: 只有在多人协作且贡献相当的情况下才使用 Co-Authored-By
+
 ### 代码风格
 ```python
 # 遵循 PEP 8

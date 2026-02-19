@@ -38,7 +38,8 @@
 2. 运行完整测试套件
 3. 遵循 PEP 8 代码规范
 4. 使用 Conventional Commits
-5. 保持文档同步更新
+5. **不使用 Co-Authored-By** ⚠️
+6. 保持文档同步更新
 
 ---
 
