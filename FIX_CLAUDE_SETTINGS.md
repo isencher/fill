@@ -8,7 +8,24 @@
 
 ## ⚡ 最简单的修复方法（推荐）
 
-### 方法 1: 使用 PowerShell 脚本自动修复
+### 方法 1: 使用批处理脚本（.bat）- 最简单 ⭐
+
+```cmd
+# 在命令提示符（CMD）或 PowerShell 中执行
+cd D:\.dev\fill
+fix_settings.bat
+```
+
+这个方法最简单，因为：
+- ✅ 不需要 PowerShell 执行策略更改
+- ✅ 不需要 Python
+- ✅ 直接从远程获取正确的文件
+- ✅ 自动备份原文件
+- ✅ 自动验证修复结果
+
+---
+
+### 方法 2: 使用 PowerShell 脚本自动修复
 
 ```powershell
 # 1. 进入项目目录
