@@ -1,26 +1,27 @@
 {
-  "mcpServers": {
-    "automation": {
-      "command": "python3",
-      "args": ["/app/fill/mcp_automation_server.py"],
-      "description": "自动化开发执行系统 - 负反馈控制"
-    }
-  },
   "hooks": {
-    "PreToolUse": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "pre", "--input", "{input}"],
-      "async": true
-    },
-    "PostToolUse": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "post", "--input", "{input}"],
-      "async": true
-    },
-    "UserPromptSubmit": {
-      "command": "python3",
-      "args": ["/app/fill/.claude/hooks/automation.py", "--hook", "prompt", "--input", "{input}"],
-      "async": false
-    }
-  }
+    "PreToolUse": [
+      {
+        "matcher": {
+          "tools": ["BashTool", "TaskTool", "ReadTool", "WriteTool", "EditTool"]
+        },
+        "hooks": []
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tools": ["BashTool", "TaskTool", "ReadTool", "WriteTool", "EditTool"]
+        },
+        "hooks": []
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": {},
+        "hooks": []
+      }
+    ]
+  },
+  "mcpServers": {}
 }
