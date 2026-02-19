@@ -14,10 +14,18 @@ Fill 是一款智能工具，可以自动将 Excel/CSV 数据填充到模板文�
 
 ## 📚 文档导航
 
+### 重要文档 ⚠️
+- **[项目完整上下文](PROJECT_CONTEXT.md)** ⭐ **开发前必读！**
+- **[快速参考](QUICK_REFERENCE.md)** - 快速查找和检查清单
+
+### 用户文档
 - [用户指南](#)
 - [API 文档](api.md)
-- [开发文档](CLAUDE_QUICKREF.md)
 - [Beta 测试反馈](BETA_FEEDBACK.md) ← **正在测试中！**
+
+### 开发文档
+- [开发快速参考](CLAUDE_QUICKREF.md)
+- [测试报告](TEST_REPORT.md)
 - [更新日志](CHANGELOG.md)
 
 ## 🚀 快速开始
