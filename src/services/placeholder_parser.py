@@ -33,13 +33,14 @@ class PlaceholderParser:
 
     # Regex pattern for {{field_name}} placeholders
     # Matches: {{field_name}}
-    # - field_name: alphanumeric, underscores, hyphens
+    # - field_name: alphanumeric (including Unicode/Chinese), underscores, hyphens
     # - Supports multiline placeholders
     # - Non-greedy matching to handle multiple placeholders
-    PATTERN = re.compile(r"\{\{([a-zA-Z0-9_\-\s]+?)\}\}", re.MULTILINE)
+    PATTERN = re.compile(r"\{\{([\w\-\s\u4e00-\u9fa5]+?)\}\}", re.MULTILINE)
 
     # Pattern for extracting just the field name (trimmed)
-    FIELD_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\s]+$")
+    # Supports Unicode word characters and Chinese characters
+    FIELD_NAME_PATTERN = re.compile(r"^[\w\-\s\u4e00-\u9fa5]+$", re.UNICODE)
 
     def __init__(self) -> None:
         """

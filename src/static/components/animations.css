@@ -1,0 +1,616 @@
+/**
+ * Micro-Interactions and Feedback Animations
+ * Provides consistent animation effects across the fill application
+ *
+ * Includes:
+ * - Button loading states
+ * - Success/error message animations
+ * - Dropdown selection feedback
+ * - Loading skeletons for async content
+ * - Smooth transitions
+ */
+
+/* ============================================
+   BUTTON ANIMATIONS
+   ============================================ */
+
+/* Button hover effects */
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button loading state */
+.btn--loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn--loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: button-spin 0.6s linear infinite;
+}
+
+@keyframes button-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Primary button loading animation */
+.btn-primary--loading::after {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+}
+
+/* Secondary button loading animation */
+.btn-secondary--loading::after {
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-top-color: #667eea;
+}
+
+/* Button success state */
+.btn--success {
+    animation: button-success 0.6s ease;
+}
+
+@keyframes button-success {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   MESSAGE ANIMATIONS
+   ============================================ */
+
+/* Message slide in */
+.message {
+    animation: message-slide-in 0.3s ease;
+}
+
+@keyframes message-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success message animation */
+.message.success {
+    animation: message-success 0.5s ease;
+}
+
+@keyframes message-success {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    50% {
+        transform: translateY(0) scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Error message shake animation */
+.message.error {
+    animation: message-shake 0.5s ease;
+}
+
+@keyframes message-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+/* Info message fade in */
+.message.info {
+    animation: message-fade-in 0.4s ease;
+}
+
+@keyframes message-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   DROPDOWN/SELECT ANIMATIONS
+   ============================================ */
+
+/* Select focus pulse effect */
+select:focus,
+.placeholder-select:focus {
+    animation: select-pulse 0.3s ease;
+}
+
+@keyframes select-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* Select option hover */
+select option:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: all 0.2s ease;
+}
+
+/* Dropdown selection confirmation */
+.select--changed {
+    animation: select-confirm 0.4s ease;
+}
+
+@keyframes select-confirm {
+    0% {
+        background-color: rgba(40, 167, 69, 0);
+    }
+    50% {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+    100% {
+        background-color: rgba(40, 167, 69, 0);
+    }
+}
+
+/* ============================================
+   LOADING SKELETONS
+   ============================================ */
+
+/* Skeleton base */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Skeleton text */
+.skeleton-text {
+    height: 14px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text--small {
+    height: 12px;
+}
+
+.skeleton-text--large {
+    height: 18px;
+}
+
+/* Skeleton title */
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    margin-bottom: 16px;
+}
+
+/* Skeleton card */
+.skeleton-card {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.skeleton-card__header {
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    margin-bottom: 12px;
+}
+
+.skeleton-card__title {
+    height: 20px;
+    width: 70%;
+    margin-bottom: 8px;
+}
+
+.skeleton-card__body {
+    height: 14px;
+    margin-bottom: 6px;
+}
+
+.skeleton-card__body:last-child {
+    width: 50%;
+}
+
+/* Skeleton table */
+.skeleton-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.skeleton-table__header {
+    height: 40px;
+    background: #f5f5f5;
+    margin-bottom: 8px;
+}
+
+.skeleton-table__row {
+    height: 48px;
+    margin-bottom: 8px;
+}
+
+.skeleton-table__cell {
+    display: inline-block;
+    height: 14px;
+    margin-right: 16px;
+}
+
+/* Skeleton list item */
+.skeleton-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.skeleton-list-item__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    margin-right: 12px;
+}
+
+.skeleton-list-item__content {
+    flex: 1;
+}
+
+.skeleton-list-item__title {
+    height: 16px;
+    width: 60%;
+    margin-bottom: 6px;
+}
+
+.skeleton-list-item__subtitle {
+    height: 12px;
+    width: 40%;
+}
+
+/* ============================================
+   CARD ANIMATIONS
+   ============================================ */
+
+/* Card hover effect */
+.template-card,
+.file-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.template-card:hover,
+.file-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Card selection animation */
+.template-card.selected {
+    animation: card-select 0.4s ease;
+}
+
+@keyframes card-select {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   INPUT ANIMATIONS
+   ============================================ */
+
+/* Input focus animation */
+input:focus,
+textarea:focus,
+select:focus {
+    animation: input-focus 0.3s ease;
+}
+
+@keyframes input-focus {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+}
+
+/* File input drag over */
+.upload-area.drag-over {
+    animation: upload-drag 0.3s ease;
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+@keyframes upload-drag {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   PROGRESS ANIMATIONS
+   ============================================ */
+
+/* Progress bar fill */
+.progress-fill {
+    transition: width 0.3s ease;
+    animation: progress-pulse 2s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ============================================
+   PANEL ANIMATIONS
+   ============================================ */
+
+/* Panel fade in */
+.panel {
+    animation: panel-fade-in 0.4s ease;
+}
+
+@keyframes panel-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   TRANSITIONS
+   ============================================ */
+
+/* Smooth page transitions */
+.page-transition {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-transition--enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.page-transition--enter-active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-transition--exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-transition--exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* ============================================
+   UTILITY ANIMATIONS
+   ============================================ */
+
+/* Fade in */
+.fade-in {
+    animation: fade-in 0.3s ease;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Fade out */
+.fade-out {
+    animation: fade-out 0.3s ease;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Slide in from top */
+.slide-in-top {
+    animation: slide-in-top 0.3s ease;
+}
+
+@keyframes slide-in-top {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Slide in from bottom */
+.slide-in-bottom {
+    animation: slide-in-bottom 0.3s ease;
+}
+
+@keyframes slide-in-bottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Scale in */
+.scale-in {
+    animation: scale-in 0.3s ease;
+}
+
+@keyframes scale-in {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Pulse */
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Bounce */
+.bounce {
+    animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Hardware acceleration for animations */
+.btn,
+.message,
+.template-card,
+.file-card {
+    will-change: transform;
+}
+
+/* Remove will-change after animation */
+.btn:hover,
+.message:hover,
+.template-card:hover,
+.file-card:hover {
+    will-change: auto;
+}

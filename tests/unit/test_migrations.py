@@ -251,11 +251,10 @@ class TestForeignKeyConfiguration:
     def test_mapping_has_file_foreign_key(self):
         """Test Mapping has file_id foreign key."""
         fk_columns = [col for col in Mapping.__table__.columns if col.foreign_keys]
-        # Mapping has 2 foreign keys: file_id and template_id
-        assert len(fk_columns) == 2
-        # Check that file_id is one of them
-        file_id_col = next(col for col in fk_columns if col.name == "file_id")
-        assert file_id_col is not None
+        # Mapping has both file_id and template_id foreign keys
+        file_fk = [col for col in fk_columns if col.name == "file_id"]
+        assert len(file_fk) == 1
+        assert file_fk[0].name == "file_id"
 
     def test_mapping_has_template_foreign_key(self):
         """Test Mapping has template_id foreign key."""

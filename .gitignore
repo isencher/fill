@@ -28,3 +28,16 @@ env/
 *.swp
 *.swo
 *~
+
+# Automation system runtime files
+.trust/scores.json
+.trust/*.bak
+.ralph/logs/
+.ralph/*.json
+.decisions/
+.logs/
+
+# Local test data
+data/fill.db
+data/*.db
+demo_*.txt

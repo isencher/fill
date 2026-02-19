@@ -12,3 +12,4 @@ httpx
 aiofiles
 openpyxl
 alembic
+pytest-playwright==0.7.2

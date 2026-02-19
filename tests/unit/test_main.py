@@ -22,7 +22,7 @@ def client() -> TestClient:
 
 
 class TestRootEndpoint:
-    """Tests for the root health check endpoint."""
+    """Tests for the root endpoint (onboarding page)."""
 
     def test_root_returns_200(self, client: TestClient) -> None:
         """
@@ -34,25 +34,33 @@ class TestRootEndpoint:
         response = client.get("/")
         assert response.status_code == 200
 
-    def test_root_returns_status_ok(self, client: TestClient) -> None:
+    def test_root_returns_html(self, client: TestClient) -> None:
         """
-        Test that GET / returns JSON with status: ok.
+        Test that GET / returns HTML content (onboarding page).
+
+        After Step 11.2, the root endpoint serves the first-time user onboarding page.
 
         Args:
             client: FastAPI test client
         """
         response = client.get("/")
-        assert response.json() == {"status": "ok"}
+        assert response.headers["content-type"].startswith("text/html")
+        assert "<!DOCTYPE html>" in response.text
+        # Check for onboarding content
+        assert "onboarding" in response.text.lower()
+        assert "script src=\"/static/onboarding.js\"" in response.text
 
-    def test_root_returns_content_type_json(self, client: TestClient) -> None:
+    def test_root_contains_onboarding_elements(self, client: TestClient) -> None:
         """
-        Test that GET / returns JSON content type.
+        Test that GET / contains onboarding page elements.
 
         Args:
             client: FastAPI test client
         """
         response = client.get("/")
-        assert response.headers["content-type"] == "application/json"
+        # Onboarding page should have these elements
+        assert "onboarding" in response.text.lower()
+        assert "static/onboarding.js" in response.text
 
 
 class TestAppConfiguration:

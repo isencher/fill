@@ -9,8 +9,11 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import _uploaded_files, app
+from src.main import _file_storage, app
+from src.repositories.database import get_db_manager
 from src.models.file import FileStatus
+from src.repositories.file_repository import FileRepository
+from migrations import File as FileModel
 
 
 @pytest.fixture
@@ -25,11 +28,25 @@ def client() -> TestClient:
 
 
 @pytest.fixture(autouse=True)
-def clear_uploaded_files() -> None:
-    """Clear in-memory uploaded files storage before each test."""
-    _uploaded_files.clear()
+def clear_storage() -> None:
+    """Clear in-memory storage and database before each test."""
+    # Clear in-memory file storage
+    _file_storage.clear()
+
+    # Clear database files table
+    db_manager = get_db_manager()
+    with db_manager.get_session() as db:
+        # Delete all files
+        db.query(FileModel).delete()
+        db.commit()
+
     yield
-    _uploaded_files.clear()
+
+    # Clean up again after test
+    _file_storage.clear()
+    with db_manager.get_session() as db:
+        db.query(FileModel).delete()
+        db.commit()
 
 
 class TestListFilesBasic:

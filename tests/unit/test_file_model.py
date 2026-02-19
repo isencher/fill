@@ -200,9 +200,9 @@ class TestUploadFileContentTypeValidation:
                 content_type="text/csv",
                 size=100,
             )
-        # Check for the error message (Pydantic v2 format)
         error_str = str(exc_info.value).lower()
-        assert "excel content-type" in error_str or "content-type" in error_str
+        # Check for Excel content-type error (different wording in Pydantic v2)
+        assert "appropriate excel content-type" in error_str or "excel files must have" in error_str
 
     def test_accept_text_csv_for_csv_file(self) -> None:
         """Test that text/csv is accepted for CSV files."""
@@ -248,7 +248,9 @@ class TestUploadFileContentTypeValidation:
                 content_type="invalid-content-type",
                 size=100,
             )
-        assert "should match pattern" in str(exc_info.value).lower()
+        # Check for pattern mismatch error
+        error_str = str(exc_info.value).lower()
+        assert "string should match pattern" in error_str or "pattern_mismatch" in error_str
 
 
 class TestUploadFileModelSerialization:
