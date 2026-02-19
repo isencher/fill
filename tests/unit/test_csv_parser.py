@@ -410,7 +410,7 @@ class TestCSVSpecialCharacters:
     def test_unicode_emojis(self, tmp_path):
         """Test handling of Unicode emoji characters."""
         csv_file = tmp_path / "emoji.csv"
-        csv_file.write_text("Name,Status\nJohn,😀\nJane,❤️\n")
+        csv_file.write_text("Name,Status\nJohn,😀\nJane,❤️\n", encoding="utf-8")
 
         data = CSVParser.parse_csv(csv_file)
 

@@ -7,7 +7,7 @@ Supports creating documents from scratch with tables, paragraphs, and styling.
 
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 try:
     from docx import Document
@@ -17,6 +17,11 @@ try:
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
+    # Create a dummy Document for type hints when library is not available
+    Document = object  # type: ignore
+
+if TYPE_CHECKING:
+    from docx import Document as DocxDocument
 
 
 class DocxGeneratorError(Exception):

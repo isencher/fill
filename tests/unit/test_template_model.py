@@ -5,8 +5,15 @@ Tests cover Template model validation, field constraints, and edge cases.
 """
 
 import pytest
+from pathlib import Path
+from datetime import datetime, timezone
 
 from src.models.template import Template
+
+
+def normalize_path(path_str: str) -> str:
+    """Normalize path for cross-platform testing."""
+    return str(Path(path_str))
 
 
 class TestTemplateCreation:
@@ -20,7 +27,7 @@ class TestTemplateCreation:
         )
 
         assert template.name == "Invoice Template"
-        assert template.file_path == "/templates/invoice.docx"
+        assert template.file_path == normalize_path("/templates/invoice.docx")
         assert template.description is None
         assert template.placeholders == []
         assert isinstance(template.id, str)
@@ -38,7 +45,7 @@ class TestTemplateCreation:
         assert template.name == "Invoice Template"
         assert template.description == "Standard invoice template"
         assert template.placeholders == ["customer_name", "invoice_date", "total_amount"]
-        assert template.file_path == "/templates/invoice.docx"
+        assert template.file_path == normalize_path("/templates/invoice.docx")
 
     def test_template_id_is_unique(self):
         """Test that each template gets a unique ID."""
@@ -49,12 +56,10 @@ class TestTemplateCreation:
 
     def test_template_created_at_is_set(self):
         """Test that created_at timestamp is set."""
-        from datetime import datetime
-
         template = Template(name="Test", file_path="/test.docx")
 
         assert isinstance(template.created_at, datetime)
-        assert template.created_at <= datetime.utcnow()
+        assert template.created_at <= datetime.now(timezone.utc)
 
 
 class TestTemplateNameValidation:
@@ -264,7 +269,7 @@ class TestTemplateFilePathValidation:
         """Test that file path trims whitespace."""
         template = Template(name="Test", file_path="  /templates/test.docx  ")
 
-        assert template.file_path == "/templates/test.docx"
+        assert template.file_path == normalize_path("/templates/test.docx")
 
     def test_file_path_with_directory(self):
         """Test that file path works with directories."""
@@ -279,7 +284,7 @@ class TestTemplateFilePathValidation:
         """Test that relative file paths work."""
         template = Template(name="Test", file_path="templates/test.docx")
 
-        assert template.file_path == "templates/test.docx"
+        assert template.file_path == normalize_path("templates/test.docx")
 
 
 class TestTemplateSerialization:
@@ -301,7 +306,7 @@ class TestTemplateSerialization:
         assert data["name"] == "Test Template"
         assert data["description"] == "Test description"
         assert data["placeholders"] == ["field1", "field2"]
-        assert data["file_path"] == "/test.docx"
+        assert data["file_path"] == normalize_path("/test.docx")
         assert "created_at" in data
 
     def test_model_validate_json(self):
@@ -320,7 +325,7 @@ class TestTemplateSerialization:
         assert template.name == "Test Template"
         assert template.description == "Test description"
         assert template.placeholders == ["field1", "field2"]
-        assert template.file_path == "/test.docx"
+        assert template.file_path == normalize_path("/test.docx")
 
     def test_model_validate_json_with_missing_fields(self):
         """Test that missing required fields raise ValidationError."""

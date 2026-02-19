@@ -5,11 +5,11 @@ Defines the Mapping model for linking data columns to template placeholders.
 Maps table columns to template placeholder fields for auto-filling.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Mapping(BaseModel):
@@ -36,7 +36,7 @@ class Mapping(BaseModel):
         default_factory=dict,
         description="Mapping of data columns to template placeholders"
     )
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @field_validator("file_id")
     @classmethod
@@ -153,17 +153,13 @@ class Mapping(BaseModel):
         """
         return cls(**data)
 
-    class Config:
-        """Pydantic model configuration."""
-
+    model_config = ConfigDict(
         # Use enum values (not strings) in JSON
-        use_enum_values = True
-
+        use_enum_values=True,
         # Validate assignment on instance creation
-        validate_assignment = True
-
+        validate_assignment=True,
         # JSON schema examples
-        json_schema_extra = {
+        json_schema_extra={
             "examples": [
                 {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -177,4 +173,5 @@ class Mapping(BaseModel):
                     "created_at": "2026-02-14T12:00:00",
                 }
             ]
-        }
+        },
+    )

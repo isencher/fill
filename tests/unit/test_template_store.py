@@ -5,9 +5,15 @@ Tests cover CRUD operations, pagination, sorting, and thread safety.
 """
 
 import pytest
+from pathlib import Path
 
 from src.models.template import Template
 from src.services.template_store import TemplateStore, get_template_store
+
+
+def normalize_path(path_str: str) -> str:
+    """Normalize path for cross-platform testing."""
+    return str(Path(path_str))
 
 
 class TestTemplateStoreCreation:
@@ -378,7 +384,7 @@ class TestUpdateTemplate:
         updated = store.update_template(template.id, file_path="/new.docx")
 
         assert updated is not None
-        assert updated.file_path == "/new.docx"
+        assert updated.file_path == normalize_path("/new.docx")
 
     def test_update_multiple_fields(self):
         """Test updating multiple fields at once."""
@@ -403,7 +409,7 @@ class TestUpdateTemplate:
         assert updated.name == "Updated"
         assert updated.description == "Updated desc"
         assert updated.placeholders == ["new"]
-        assert updated.file_path == "/new.docx"
+        assert updated.file_path == normalize_path("/new.docx")
 
     def test_update_nonexistent_template(self):
         """Test updating a nonexistent template."""

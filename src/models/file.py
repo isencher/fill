@@ -4,11 +4,11 @@ Fill Application - File Upload Model
 Defines the UploadFile data model with validation for file uploads.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class FileStatus(str, Enum):
@@ -37,7 +37,7 @@ class UploadFile(BaseModel):
     filename: str = Field(..., min_length=1, max_length=255, description="Original filename")
     content_type: str = Field(..., pattern=r"^[a-z]+/[a-z0-9\-.]+$", description="MIME type")
     size: int = Field(..., gt=0, description="File size in bytes")
-    uploaded_at: datetime = Field(default_factory=datetime.utcnow, description="Upload timestamp")
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Upload timestamp")
     status: FileStatus = Field(default=FileStatus.PENDING, description="Processing status")
 
     @field_validator("filename")
@@ -105,11 +105,10 @@ class UploadFile(BaseModel):
                 raise ValueError("Excel files must have appropriate Excel content-type")
         return self
 
-    class Config:
-        """Pydantic model configuration."""
-
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             UUID: str,
             datetime: lambda v: v.isoformat(),
-        }
-        use_enum_values = True
+        },
+        use_enum_values=True,
+    )

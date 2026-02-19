@@ -5,8 +5,10 @@ Parses Excel (.xlsx) files into structured data (list of dictionaries).
 Uses openpyxl library for reading Excel files.
 """
 
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from zipfile import BadZipFile
 
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
@@ -81,9 +83,15 @@ class ExcelParser:
             if sheet is None:
                 raise ValueError("Workbook has no sheets")
 
-        # Extract headers from first row
+        # Extract headers from first row with error handling
         headers: list[str] = []
-        for cell in sheet[1]:
+        try:
+            first_row = sheet[1]
+        except IndexError:
+            # Sheet exists but has no rows
+            raise ValueError("Sheet has no headers (first row is empty)")
+
+        for cell in first_row:
             value = cell.value
             if value is None:
                 headers.append("")  # Empty header
@@ -111,7 +119,8 @@ class ExcelParser:
                 # Handle different cell value types
                 if value is None:
                     processed_value = ""
-                elif isinstance(value, (int, float, str, bool)):
+                elif isinstance(value, (int, float, str, bool, datetime, date)):
+                    # Preserve datetime and date objects
                     processed_value = value
                 else:
                     # Convert other types to string
@@ -153,7 +162,11 @@ class ExcelParser:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         try:
-            with openpyxl.load_workbook(file_path, read_only=True) as workbook:
-                return workbook.sheetnames
+            workbook = openpyxl.load_workbook(file_path, read_only=True)
+            sheet_names = workbook.sheetnames
+            workbook.close()
+            return sheet_names
         except InvalidFileException as e:
+            raise InvalidFileException(f"Invalid Excel file: {e}") from e
+        except BadZipFile as e:
             raise InvalidFileException(f"Invalid Excel file: {e}") from e

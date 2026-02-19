@@ -6,7 +6,7 @@ and Pydantic configuration.
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from src.models.mapping import Mapping
@@ -62,9 +62,9 @@ class TestMappingCreation:
 
     def test_create_mapping_generates_timestamp(self):
         """Test that mapping gets created_at timestamp."""
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc)
         mapping = Mapping(file_id="f1", template_id="t1")
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc)
 
         assert before <= mapping.created_at <= after
 
@@ -304,9 +304,10 @@ class TestPydanticConfig:
 
     def test_use_enum_values(self):
         """Test that enum values configuration is set."""
-        # This tests Config.use_enum_values = True
-        # No enums in Mapping currently, but config should be present
-        assert hasattr(Mapping, "Config")
+        # In Pydantic v2, we use model_config instead of Config
+        # Check that model_config exists and has use_enum_values
+        assert hasattr(Mapping, "model_config")
+        assert Mapping.model_config.get("use_enum_values") is True
 
 
 class TestEdgeCases:

@@ -5,12 +5,12 @@ Defines the Template model for managing document templates with placeholders.
 Templates contain file references and metadata for auto-filling.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Template(BaseModel):
@@ -34,7 +34,7 @@ class Template(BaseModel):
     description: str | None = Field(default=None, max_length=1000)
     placeholders: list[str] = Field(default_factory=list)
     file_path: str = Field(..., min_length=1)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @field_validator("name")
     @classmethod
@@ -180,17 +180,13 @@ class Template(BaseModel):
         """
         return cls(**data)
 
-    class Config:
-        """Pydantic model configuration."""
-
+    model_config = ConfigDict(
         # Use enum values (not strings) in JSON
-        use_enum_values = True
-
+        use_enum_values=True,
         # Validate assignment on instance creation
-        validate_assignment = True
-
+        validate_assignment=True,
         # JSON schema examples
-        json_schema_extra = {
+        json_schema_extra={
             "examples": [
                 {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -201,5 +197,6 @@ class Template(BaseModel):
                     "created_at": "2026-02-13T12:00:00",
                 }
             ]
-        }
+        },
+    )
 

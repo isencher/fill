@@ -245,9 +245,11 @@ class TestFileStorage:
         response = client.post("/api/v1/upload", files=files)
         file_id = response.json()["file_id"]
 
-        # Verify the file metadata is stored
-        assert file_id in _uploaded_files
-        stored_file = _uploaded_files[file_id]
+        # Verify the file metadata is stored (convert string to UUID)
+        from uuid import UUID
+        file_id_uuid = UUID(file_id)
+        assert file_id_uuid in _uploaded_files
+        stored_file = _uploaded_files[file_id_uuid]
         assert stored_file.filename == "test.csv"
         assert stored_file.size == len(file_content)
 
@@ -271,10 +273,15 @@ class TestFileStorage:
         file_id_1 = response1.json()["file_id"]
         file_id_2 = response2.json()["file_id"]
 
-        assert file_id_1 in _uploaded_files
-        assert file_id_2 in _uploaded_files
-        assert _uploaded_files[file_id_1].filename == "file1.csv"
-        assert _uploaded_files[file_id_2].filename == "file2.csv"
+        # Convert string IDs to UUID for dictionary lookup
+        from uuid import UUID
+        file_id_1_uuid = UUID(file_id_1)
+        file_id_2_uuid = UUID(file_id_2)
+
+        assert file_id_1_uuid in _uploaded_files
+        assert file_id_2_uuid in _uploaded_files
+        assert _uploaded_files[file_id_1_uuid].filename == "file1.csv"
+        assert _uploaded_files[file_id_2_uuid].filename == "file2.csv"
 
 
 class TestErrorResponseFormat:

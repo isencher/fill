@@ -5,10 +5,16 @@ Tests cover CRUD operations for templates via HTTP API.
 """
 
 import pytest
+from pathlib import Path
 from fastapi.testclient import TestClient
 
 from src.main import app
 from src.services.template_store import get_template_store
+
+
+def normalize_path(path_str: str) -> str:
+    """Normalize path for cross-platform testing."""
+    return str(Path(path_str))
 
 
 @pytest.fixture
@@ -46,7 +52,7 @@ class TestCreateTemplate:
         assert data["message"] == "Template created successfully"
         assert "template" in data
         assert data["template"]["name"] == "Invoice Template"
-        assert data["template"]["file_path"] == "/templates/invoice.docx"
+        assert data["template"]["file_path"] == normalize_path("/templates/invoice.docx")
         assert data["template"]["description"] == "Standard invoice template"
         assert "id" in data["template"]
         assert "created_at" in data["template"]
@@ -325,7 +331,7 @@ class TestUpdateTemplate:
         data = response.json()
         assert data["message"] == "Template updated successfully"
         assert data["template"]["name"] == "Updated Name"
-        assert data["template"]["file_path"] == "/templates/test.docx"
+        assert data["template"]["file_path"] == normalize_path("/templates/test.docx")
 
     def test_update_template_description(self, client: TestClient):
         """Test updating template description."""
@@ -396,7 +402,7 @@ class TestUpdateTemplate:
         assert response.status_code == 200
         data = response.json()
         assert data["template"]["name"] == "Updated"
-        assert data["template"]["file_path"] == "/templates/updated.docx"
+        assert data["template"]["file_path"] == normalize_path("/templates/updated.docx")
         assert data["template"]["description"] == "Updated description"
 
     def test_update_template_no_fields(self, client: TestClient):

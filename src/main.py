@@ -116,7 +116,7 @@ async def upload_file(file: FastAPIUploadFile = File(...)) -> JSONResponse:
             "file_id": str(upload_file.id),
             "filename": upload_file.filename,
             "size": upload_file.size,
-            "status": upload_file.status.value,
+            "status": upload_file.status if isinstance(upload_file.status, str) else upload_file.status.value,
         }
     )
 
@@ -157,7 +157,7 @@ async def list_files(
             "content_type": f.content_type,
             "size": f.size,
             "uploaded_at": f.uploaded_at.isoformat(),
-            "status": f.status.value,
+            "status": f.status if isinstance(f.status, str) else f.status.value,
         }
         for f in paginated_files
     ]
