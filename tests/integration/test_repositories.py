@@ -419,6 +419,218 @@ class TestMappingRepository:
         assert updated is not None
         assert json.loads(updated.column_mappings) == {"new": "field"}
 
+    def test_get_mapping_by_id_not_found(self, db_session: Session):
+        """Test retrieving non-existent mapping."""
+        repo = MappingRepository(db_session)
+        retrieved = repo.get_mapping_by_id(uuid4())
+        assert retrieved is None
+
+    def test_get_mappings_by_template(self, db_session: Session):
+        """Test retrieving mappings by template."""
+        file_rec1 = File(
+            filename="test1.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test1.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        file_rec2 = File(
+            filename="test2.csv",
+            content_type="text/csv",
+            size=200,
+            file_path="/tmp/test2.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec1, file_rec2, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        repo.create_mapping(file_rec1.id, template_rec.id, {"col1": "field"})
+        repo.create_mapping(file_rec2.id, template_rec.id, {"col2": "field"})
+
+        mappings = repo.get_mappings_by_template(template_rec.id)
+        assert len(mappings) == 2
+
+    def test_get_mapping_for_file_template(self, db_session: Session):
+        """Test retrieving mapping for specific file and template."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        created = repo.create_mapping(file_rec.id, template_rec.id, {"col": "field"})
+
+        retrieved = repo.get_mapping_for_file_template(file_rec.id, template_rec.id)
+        assert retrieved is not None
+        assert retrieved.id == created.id
+
+    def test_get_mapping_for_file_template_not_found(self, db_session: Session):
+        """Test retrieving mapping for non-existent file/template combination."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        retrieved = repo.get_mapping_for_file_template(file_rec.id, template_rec.id)
+        assert retrieved is None
+
+    def test_list_mappings(self, db_session: Session):
+        """Test listing mappings with pagination."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        repo.create_mapping(file_rec.id, template_rec.id, {"col1": "field1"})
+        repo.create_mapping(file_rec.id, template_rec.id, {"col2": "field2"})
+        repo.create_mapping(file_rec.id, template_rec.id, {"col3": "field3"})
+
+        mappings = repo.list_mappings(limit=10)
+        assert len(mappings) == 3
+
+    def test_list_mappings_with_pagination(self, db_session: Session):
+        """Test listing mappings with pagination."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        for i in range(5):
+            repo.create_mapping(file_rec.id, template_rec.id, {f"col{i}": f"field{i}"})
+
+        page1 = repo.list_mappings(limit=2, offset=0)
+        assert len(page1) == 2
+
+        page2 = repo.list_mappings(limit=2, offset=2)
+        assert len(page2) == 2
+
+        page3 = repo.list_mappings(limit=2, offset=4)
+        assert len(page3) == 1
+
+    def test_count_mappings(self, db_session: Session):
+        """Test counting mappings."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        assert repo.count_mappings() == 0
+
+        repo.create_mapping(file_rec.id, template_rec.id, {"col1": "field1"})
+        repo.create_mapping(file_rec.id, template_rec.id, {"col2": "field2"})
+        repo.create_mapping(file_rec.id, template_rec.id, {"col3": "field3"})
+
+        assert repo.count_mappings() == 3
+
+    def test_update_mapping_not_found(self, db_session: Session):
+        """Test updating non-existent mapping."""
+        repo = MappingRepository(db_session)
+        updated = repo.update_mapping(uuid4(), column_mappings={"new": "field"})
+        assert updated is None
+
+    def test_delete_mapping(self, db_session: Session):
+        """Test deleting mapping."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        repo = MappingRepository(db_session)
+        mapping = repo.create_mapping(file_rec.id, template_rec.id, {"col": "field"})
+
+        assert repo.delete_mapping(mapping.id) is True
+        assert repo.get_mapping_by_id(mapping.id) is None
+
+    def test_delete_mapping_not_found(self, db_session: Session):
+        """Test deleting non-existent mapping."""
+        repo = MappingRepository(db_session)
+        assert repo.delete_mapping(uuid4()) is False
+
 
 # JobRepository Tests
 class TestJobRepository:
@@ -571,6 +783,326 @@ class TestJobRepository:
         updated = repo.increment_failed_rows(job.id, count=3)
         assert updated is not None
         assert updated.failed_rows == 3
+
+    def test_get_job_by_id(self, db_session: Session):
+        """Test retrieving job by ID."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        created = repo.create_job(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            mapping_id=mapping_rec.id,
+            total_rows=100,
+        )
+
+        retrieved = repo.get_job_by_id(created.id)
+        assert retrieved is not None
+        assert retrieved.id == created.id
+        assert retrieved.status == "pending"
+
+    def test_get_job_by_id_not_found(self, db_session: Session):
+        """Test retrieving non-existent job."""
+        repo = JobRepository(db_session)
+        retrieved = repo.get_job_by_id(uuid4())
+        assert retrieved is None
+
+    def test_list_jobs(self, db_session: Session):
+        """Test listing jobs with pagination."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 200, "processing")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 300, "completed")
+
+        jobs = repo.list_jobs(limit=10)
+        assert len(jobs) == 3
+
+    def test_list_jobs_with_status_filter(self, db_session: Session):
+        """Test listing jobs with status filter."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 200, "processing")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 300, "pending")
+
+        pending_jobs = repo.list_jobs(status="pending")
+        assert len(pending_jobs) == 2
+        assert all(j.status == "pending" for j in pending_jobs)
+
+    def test_list_jobs_with_file_filter(self, db_session: Session):
+        """Test listing jobs filtered by file ID."""
+        file_rec1 = File(
+            filename="test1.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test1.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        file_rec2 = File(
+            filename="test2.csv",
+            content_type="text/csv",
+            size=200,
+            file_path="/tmp/test2.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec1, file_rec2, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec1.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        repo.create_job(file_rec1.id, template_rec.id, mapping_rec.id, 100, "pending")
+        repo.create_job(file_rec2.id, template_rec.id, mapping_rec.id, 200, "pending")
+
+        jobs = repo.list_jobs(file_id=file_rec1.id)
+        assert len(jobs) == 1
+        assert jobs[0].file_id == file_rec1.id
+
+    def test_count_jobs(self, db_session: Session):
+        """Test counting jobs."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        assert repo.count_jobs() == 0
+
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 200, "processing")
+        repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 300, "pending")
+
+        assert repo.count_jobs() == 3
+        assert repo.count_jobs(status="pending") == 2
+        assert repo.count_jobs(status="processing") == 1
+
+    def test_update_job_status(self, db_session: Session):
+        """Test updating job status."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        job = repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+
+        updated = repo.update_job_status(job.id, "processing")
+        assert updated is not None
+        assert updated.status == "processing"
+        assert updated.updated_at is not None
+
+    def test_update_job_status_with_error(self, db_session: Session):
+        """Test updating job status with error message."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        job = repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+
+        updated = repo.update_job_status(job.id, "failed", error_message="Test error")
+        assert updated is not None
+        assert updated.status == "failed"
+        assert updated.error_message == "Test error"
+
+    def test_update_job_status_not_found(self, db_session: Session):
+        """Test updating status for non-existent job."""
+        repo = JobRepository(db_session)
+        updated = repo.update_job_status(uuid4(), "processing")
+        assert updated is None
+
+    def test_delete_job(self, db_session: Session):
+        """Test deleting job."""
+        file_rec = File(
+            filename="test.csv",
+            content_type="text/csv",
+            size=100,
+            file_path="/tmp/test.csv",
+            status="pending",
+            uploaded_at=datetime.utcnow(),
+        )
+        template_rec = Template(
+            name="Test Template",
+            placeholders=json.dumps(["field1"]),
+            file_path="/templates/test.docx",
+            created_at=datetime.utcnow(),
+        )
+        db_session.add_all([file_rec, template_rec])
+        db_session.flush()
+
+        mapping_rec = Mapping(
+            file_id=file_rec.id,
+            template_id=template_rec.id,
+            column_mappings=json.dumps({"col": "field1"}),
+            created_at=datetime.utcnow(),
+        )
+        db_session.add(mapping_rec)
+        db_session.flush()
+
+        repo = JobRepository(db_session)
+        job = repo.create_job(file_rec.id, template_rec.id, mapping_rec.id, 100, "pending")
+
+        assert repo.delete_job(job.id) is True
+        assert repo.get_job_by_id(job.id) is None
+
+    def test_delete_job_not_found(self, db_session: Session):
+        """Test deleting non-existent job."""
+        repo = JobRepository(db_session)
+        assert repo.delete_job(uuid4()) is False
 
 
 # JobOutputRepository Tests
