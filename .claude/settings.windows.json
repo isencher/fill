@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": {
+          "tools": ["BashTool", "TaskTool", "ReadTool", "WriteTool", "EditTool"]
+        },
+        "hooks": []
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tools": ["BashTool", "TaskTool", "ReadTool", "WriteTool", "EditTool"]
+        },
+        "hooks": []
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": {},
+        "hooks": []
+      }
+    ]
+  },
+  "mcpServers": {}
+}
