@@ -129,7 +129,7 @@ class TestUploadRedirectLogic:
         static_dir = os.path.join(os.path.dirname(__file__), "../../src/static")
         upload_js_path = os.path.join(static_dir, "upload.js")
         
-        with open(upload_js_path, "r") as f:
+        with open(upload_js_path, "r", encoding="utf-8") as f:
             content = f.read()
         
         # Should redirect to templates.html (not mapping.html directly)

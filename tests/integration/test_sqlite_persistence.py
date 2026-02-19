@@ -25,12 +25,34 @@ from src.repositories.mapping_repository import MappingRepository
 @pytest.fixture
 def temp_db_path():
     """Create a temporary database file."""
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        db_path = f.name
+    # Create temp file in a temp directory that will be cleaned up automatically
+    tmpdir = tempfile.mkdtemp()
+    db_path = os.path.join(tmpdir, "test.db")
     yield db_path
-    # Cleanup
-    if os.path.exists(db_path):
-        os.unlink(db_path)
+    # Cleanup - use a loop to handle Windows file locking
+    import shutil
+    import gc
+    import time
+
+    # Force garbage collection to close any remaining connections
+    gc.collect()
+
+    # Try multiple times with delays to handle Windows file locking
+    max_attempts = 10
+    for attempt in range(max_attempts):
+        try:
+            if os.path.exists(tmpdir):
+                shutil.rmtree(tmpdir)
+            break
+        except PermissionError:
+            if attempt < max_attempts - 1:
+                # Wait longer on each attempt
+                time.sleep(0.5 * (attempt + 1))
+                gc.collect()
+            else:
+                # Final attempt - log but don't fail the test
+                print(f"Warning: Could not cleanup temp directory {tmpdir}")
+                pass
 
 
 @pytest.fixture
