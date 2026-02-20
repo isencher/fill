@@ -154,7 +154,6 @@ class TestDualEntryPoints:
         # Should have template selection option
         expect(page.locator("text=从示例开始").first).to_be_visible()
 
-    @pytest.mark.xfail(reason="Entry point flow not yet implemented")
     def test_template_first_flow_asks_for_data(self, page: Page, server):
         """Template-first flow should ask for data after template selection."""
         page.goto("http://localhost:8000/")
