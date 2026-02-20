@@ -18,7 +18,16 @@ import pytest
 # Skip all tests in this module if playwright is not installed
 pytest.importorskip("playwright.sync_api")
 
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Page, Browser, expect
+
+
+@pytest.fixture
+def page(browser: Browser) -> Page:
+    """Create a fresh page for each test with a new context."""
+    context = browser.new_context()
+    page = context.new_page()
+    yield page
+    context.close()
 
 
 class TestTemplateSelectionPage:
@@ -26,7 +35,11 @@ class TestTemplateSelectionPage:
 
     def test_template_list_page_exists(self, page: Page, server):
         """Template selection page should be accessible."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+        # Navigate with domcontentloaded to avoid waiting for all resources
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
 
         # Should show template selection interface
         expect(page.locator("h1")).to_contain_text("选择模板")
@@ -35,15 +48,27 @@ class TestTemplateSelectionPage:
 
     def test_template_list_shows_builtin_templates(self, page: Page, server):
         """Should show built-in example templates."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+        # Navigate with domcontentloaded to avoid waiting for all resources
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
 
         # Should have at least 3 built-in templates
         templates = page.locator("[data-testid='template-card']")
-        expect(templates).to_have_count(3)
+        templates.first.wait_for(state="visible", timeout=10000)
+        expect(templates).to_have_count(3, timeout=10000)
 
     def test_template_selection_navigates_to_mapping(self, page: Page, server):
         """Selecting template should navigate to mapping with both IDs."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+        # Navigate with domcontentloaded to avoid waiting for all resources
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
+
+        # Wait for use button to be clickable
+        page.locator("[data-testid='use-template-btn']").first.wait_for(state="visible", timeout=10000)
 
         # Click first template's "Use" button
         page.locator("[data-testid='use-template-btn']").first.click()
@@ -55,7 +80,11 @@ class TestTemplateSelectionPage:
 
     def test_template_upload_option_available(self, page: Page, server):
         """Should have option to upload custom template."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+        # Navigate with domcontentloaded to avoid waiting for all resources
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
 
         expect(page.locator("text=上传我的模板").first).to_be_visible()
         expect(page.locator("input[type='file'][accept='.docx,.txt']")).to_be_attached()
@@ -144,6 +173,9 @@ class TestDualEntryPoints:
         """User can start by uploading data first."""
         page.goto("http://localhost:8000/", wait_until="domcontentloaded")
 
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
+
         # Should have data upload option
         expect(page.locator("text=我有数据文件").first).to_be_visible()
 
@@ -151,12 +183,18 @@ class TestDualEntryPoints:
         """User can start by selecting template first."""
         page.goto("http://localhost:8000/", wait_until="domcontentloaded")
 
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
+
         # Should have template selection option
         expect(page.locator("text=从示例开始").first).to_be_visible()
 
     def test_template_first_flow_asks_for_data(self, page: Page, server):
         """Template-first flow should have template upload option."""
         page.goto("http://localhost:8000/", wait_until="domcontentloaded")
+
+        # Wait for JavaScript rendering to complete
+        page.wait_for_timeout(2000)
 
         # Should have template upload option
         expect(page.locator("text=我有模板文件").first).to_be_visible()
