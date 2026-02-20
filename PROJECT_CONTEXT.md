@@ -563,21 +563,80 @@ migrations/versions/*.py        # 迁移脚本
 
 ---
 
+## 虚拟环境约束 ⚠️
+
+**重要**: 本项目使用虚拟环境进行依赖管理和隔离。
+
+### 虚拟环境位置
+```
+.venv/
+```
+
+### 必须使用虚拟环境的命令
+
+**运行测试**:
+```bash
+# Windows
+.venv\Scripts\python.exe -m pytest tests/
+
+# Linux/macOS
+.venv/bin/python -m pytest tests/
+```
+
+**启动服务器**:
+```bash
+# Windows
+.venv\Scripts\uvicorn.exe src.main:app --reload
+
+# Linux/macOS
+.venv/bin/uvicorn src.main:app --reload
+```
+
+**安装依赖**:
+```bash
+# Windows
+.venv\Scripts\pip.exe install -r requirements.txt
+
+# Linux/macOS
+.venv/bin/pip install -r requirements.txt
+```
+
+### 快捷命令（推荐）
+在项目根目录创建快捷命令或在 shell 中配置别名：
+
+**Windows PowerShell** (添加到 $PROFILE):
+```powershell
+function Invoke-PyTest { .venv\Scripts\python.exe -m pytest $args }
+Set-Alias pytest Invoke-PyTest
+
+function Invoke-Uvicorn { .venv\Scripts\uvicorn.exe $args }
+Set-Alias uvicorn Invoke-Uvicorn
+```
+
+**Linux/macOS** (添加到 ~/.bashrc 或 ~/.zshrc):
+```bash
+alias pytest=".venv/bin/python -m pytest"
+alias uvicorn=".venv/bin/uvicorn"
+```
+
+---
+
 ## 测试覆盖率目标
 
-### 当前覆盖率: 88.46%
+### 当前覆盖率: 89.87% ✅
 ```
-总体目标: ≥85%
+总体目标: ≥85% (已达标)
 Repository 层: ≥90%
 Service 层: ≥85%
 Model 层: ≥90%
 ```
 
-### 需要关注的模块
+### 测试统计
 ```
-src/main.py                          - 72.82% (需要提升)
-src/services/excel_template_filler.py - 79.41% (接近目标)
-src/services/template_filler.py      - 82.04% (接近目标)
+总测试数: 1329 个
+单元测试 + 集成测试: 853 passed, 1 failed, 2 skipped
+E2E 测试: 473 个
+代码覆盖率: 89.87%
 ```
 
 ---
@@ -652,27 +711,28 @@ docker-compose up -d
 
 ### 问题: 测试失败
 ```bash
-# 检查数据库
+# 检查数据库（使用虚拟环境）
 rm data/fill.db
-python -c "from src.repositories.database import init_db; init_db()"
+.venv/Scripts/python.exe -c "from src.repositories.database import init_db; init_db()"
 
 # 重新运行测试
-pytest tests/unit tests/integration -v
+.venv/Scripts/python.exe -m pytest tests/unit tests/integration -v
 ```
 
 ### 问题: 端点 404
 ```bash
-# 检查 main.py 是否包含所有端点
+# 检查 main.py 是否包含所有端点（使用虚拟环境）
+.venv/Scripts/python.exe -m uvicorn src.main:app --reload
 curl http://localhost:8000/docs
 curl http://localhost:8000/api/v1/templates/built-in
 ```
 
 ### 问题: Playwright 测试超时
 ```bash
-# 确保服务器在运行
-python -m pytest tests/e2e/test_docs_playwright.py -v
+# 确保服务器在运行（使用虚拟环境）
+.venv/Scripts/python.exe -m pytest tests/e2e/test_docs_playwright.py -v
 # 或使用 TestClient（不需要服务器）
-pytest tests/e2e/test_upload_page.py -v
+.venv/Scripts/python.exe -m pytest tests/e2e/test_upload_page.py -v
 ```
 
 ---
@@ -683,6 +743,7 @@ pytest tests/e2e/test_upload_page.py -v
 - **主要开发**: Claude Sonnet 4.5
 - **测试环境**: Linux (WSL2), Windows, macOS
 - **Python 版本**: 3.11+
+- **虚拟环境**: `.venv/` (必须使用虚拟环境运行所有命令) ⚠️
 
 ### 重要文档
 - `README.md` - 项目概述
@@ -715,17 +776,18 @@ pytest tests/e2e/test_upload_page.py -v
 
 ### v0.1.0-beta (当前版本)
 - 完整功能实现
-- 822 个测试通过
-- 88.46% 代码覆盖率
+- 1329 个测试（853 passed, 1 failed, 2 skipped）
+- 89.87% 代码覆盖率 ✅
 - 生产就绪
 
 ### 重要里程碑
+- 2026-02-20: 代码覆盖率提升到 89.87%，添加虚拟环境约束
 - 2026-02-19: 恢复完整版本，拒绝简化版本
 - 2026-02-18: 代码覆盖率提升到 88.46%
 - 2026-02-17: Beta 版本发布
 
 ---
 
-**最后更新**: 2026-02-19
-**文档版本**: 1.0
+**最后更新**: 2026-02-20
+**文档版本**: 1.1
 **状态**: ✅ 当前版本（完整功能版）

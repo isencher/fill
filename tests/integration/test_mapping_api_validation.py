@@ -143,10 +143,12 @@ class TestMappingAPIValidation:
         self, client: TestClient, sample_template_id: str
     ):
         """Test error handling for non-existent file."""
+        # Use a valid UUID format that doesn't exist in the database
+        non_existent_file_id = str(uuid4())
         response = client.post(
             "/api/v1/mappings",
             params={
-                "file_id": "non-existent-file",
+                "file_id": non_existent_file_id,
                 "template_id": sample_template_id,
             },
             json={"col": "field"},
