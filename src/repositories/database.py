@@ -5,7 +5,6 @@ Provides centralized database session management for the application.
 Handles engine creation, session lifecycle, and initialization.
 """
 
-import os
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
@@ -14,14 +13,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
 from migrations import Base
+from src.config.settings import settings
 
-# Determine database URL based on environment
-# - If DATABASE_URL is set explicitly, use it
-# - Otherwise use SQLite for local development (simpler, no server needed)
-DEFAULT_DATABASE_URL = "sqlite:///./data/fill.db"
-
-# Database URL from environment or default
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+# Database URL from settings
+DATABASE_URL = settings.database_url
 
 # Ensure data directory exists for SQLite
 if DATABASE_URL.startswith("sqlite:///./"):
@@ -32,7 +27,14 @@ if DATABASE_URL.startswith("sqlite:///./"):
 # pool_pre_ping=True checks connection health before use
 # echo=False disables SQL query logging (enable for debugging)
 # check_same_thread=False required for SQLite in FastAPI (multiple threads)
-engine_args = {"pool_pre_ping": True, "echo": False}
+engine_args = {
+    "pool_pre_ping": True,
+    "echo": False,
+    "pool_size": settings.pool_size,
+    "max_overflow": settings.max_overflow,
+    "pool_timeout": settings.pool_timeout,
+    "pool_recycle": settings.pool_recycle,
+}
 if DATABASE_URL.startswith("sqlite"):
     engine_args["connect_args"] = {"check_same_thread": False}
 
@@ -55,12 +57,19 @@ class DatabaseManager:
         Initialize the database manager.
 
         Args:
-            database_url: Optional database URL. Uses DATABASE_URL env var or default if not provided.
+            database_url: Optional database URL. Uses settings if not provided.
         """
         self.database_url = database_url or DATABASE_URL
 
         # Create engine and session factory for this manager
-        engine_args = {"pool_pre_ping": True, "echo": False}
+        engine_args = {
+            "pool_pre_ping": True,
+            "echo": False,
+            "pool_size": settings.pool_size,
+            "max_overflow": settings.max_overflow,
+            "pool_timeout": settings.pool_timeout,
+            "pool_recycle": settings.pool_recycle,
+        }
         if self.database_url.startswith("sqlite"):
             engine_args["connect_args"] = {"check_same_thread": False}
 

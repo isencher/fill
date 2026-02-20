@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, File as FastAPIFile, Form, Query, HTTPEx
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from src.api.dependencies import template_store, database
+from src.api.dependencies import template_store, database, validate_uuid
 from src.models.template import Template
 from src.services.placeholder_parser import PlaceholderParser
 
@@ -268,6 +268,9 @@ async def get_template(
     Raises:
         HTTPException: 404 if template not found
     """
+    # Validate UUID format
+    await validate_uuid(template_id, "template ID")
+
     template = store.get_template(template_id)
 
     if template is None:
@@ -316,6 +319,9 @@ async def update_template(
         HTTPException: 404 if template not found
         HTTPException: 400 if update data is invalid
     """
+    # Validate UUID format
+    await validate_uuid(template_id, "template ID")
+
     # Build updates dictionary
     updates = {}
     if name is not None:
@@ -382,6 +388,9 @@ async def delete_template(
     Raises:
         HTTPException: 404 if template not found
     """
+    # Validate UUID format
+    await validate_uuid(template_id, "template ID")
+
     deleted = store.delete_template(template_id)
 
     if not deleted:

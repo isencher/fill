@@ -14,7 +14,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from src.api.dependencies import file_storage, template_store, database
+from src.api.dependencies import file_storage, template_store, database, validate_uuid
 from src.models.mapping import Mapping
 from src.repositories.file_repository import FileRepository
 from src.repositories.mapping_repository import MappingRepository
@@ -51,10 +51,7 @@ async def suggest_mapping(
         HTTPException: 404 if file or template not found
     """
     # Validate file exists
-    try:
-        file_uuid = UUID(file_id)
-    except ValueError:
-        raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+    file_uuid = await validate_uuid(file_id, "file ID")
 
     # Check if file content exists in storage
     file_content = storage.get(file_uuid)
@@ -146,13 +143,7 @@ async def create_mapping(
         HTTPException: 404 if file or template not found
     """
     # Validate file exists in database
-    try:
-        file_uuid = UUID(file_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=404,
-            detail=f"File not found: {file_id}"
-        )
+    file_uuid = await validate_uuid(file_id, "file ID")
 
     file_repo = FileRepository(db)
     db_file = file_repo.get_file_by_id(file_uuid)
@@ -219,14 +210,7 @@ async def parse_file(
         HTTPException: 400 if file cannot be parsed
     """
     # Convert string ID to UUID for lookup
-    try:
-        file_uuid = UUID(file_id)
-    except ValueError:
-        # Treat invalid UUID format as file not found for better UX
-        raise HTTPException(
-            status_code=404,
-            detail=f"File not found: {file_id}"
-        )
+    file_uuid = await validate_uuid(file_id, "file ID")
 
     # Check if file exists in database
     file_repo = FileRepository(db)

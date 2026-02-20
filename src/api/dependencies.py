@@ -5,19 +5,25 @@ This module provides FastAPI dependency functions for shared service instances.
 All routers should use these dependencies to access services.
 """
 
+from datetime import timedelta
 from typing import Generator
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from src.repositories.database import get_db
-from src.services.file_storage import get_file_storage
+from src.services.file_storage import FileStorage, get_file_storage
 from src.services.template_store import get_template_store
 from src.services.output_storage import get_output_storage
+from src.config.settings import settings
 
 
-# Initialize singleton service instances
-_file_storage = get_file_storage()
+# Initialize singleton service instances with settings
+_file_storage: FileStorage = get_file_storage()
+# Re-initialize with settings-based TTL as timedelta
+_file_storage._ttl = timedelta(hours=settings.upload_ttl_hours)
+
 _template_store = get_template_store()
 _output_storage = get_output_storage()
 
@@ -64,6 +70,29 @@ def database() -> Generator:
     yield from db_gen
 
 
+async def validate_uuid(id_str: str, field_name: str = "ID") -> UUID:
+    """
+    Validate and convert UUID string.
+
+    Args:
+        id_str: The UUID string to validate
+        field_name: Name of the field for error messages
+
+    Returns:
+        The validated UUID object
+
+    Raises:
+        HTTPException: 404 if the UUID format is invalid
+    """
+    try:
+        return UUID(id_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Invalid {field_name} format"
+        )
+
+
 # Export service instances for backward compatibility
 __all__ = [
     "file_storage",
@@ -74,4 +103,5 @@ __all__ = [
     "_file_storage",
     "_template_store",
     "_output_storage",
+    "validate_uuid",
 ]

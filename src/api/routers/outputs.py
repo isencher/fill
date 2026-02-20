@@ -10,7 +10,7 @@ import zipfile
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from src.api.dependencies import output_storage
+from src.api.dependencies import output_storage, validate_uuid
 
 
 # Create router
@@ -35,6 +35,9 @@ async def download_job_outputs(
     Raises:
         HTTPException: 404 if job not found
     """
+    # Validate job_id format (job_id is expected to be a string, not necessarily UUID)
+    # So we just check if it exists without UUID validation
+
     # Check if job exists
     if not storage.job_exists(job_id):
         raise HTTPException(

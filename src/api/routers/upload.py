@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from src.api.dependencies import file_storage, database
 from src.models.file import FileStatus
 from src.repositories.file_repository import FileRepository
+from src.config.settings import settings
 
 
 # Create router
@@ -43,22 +44,21 @@ async def upload_file(
         HTTPException: 413 if file size exceeds limit
     """
     # Validate file extension
-    if not (file.filename or "").lower().endswith((".xlsx", ".csv")):
+    if not (file.filename or "").lower().endswith(tuple(settings.allowed_extensions)):
         raise HTTPException(
             status_code=400,
-            detail="Invalid file type. Only .xlsx and .csv files are supported."
+            detail=f"Invalid file type. Only {', '.join(settings.allowed_extensions)} files are supported."
         )
 
     # Read file content to determine size
     file_content = await file.read()
     file_size = len(file_content)
 
-    # Validate file size (10MB limit)
-    max_size = 10 * 1024 * 1024
-    if file_size > max_size:
+    # Validate file size using settings
+    if file_size > settings.max_file_size:
         raise HTTPException(
             status_code=413,
-            detail=f"File size exceeds maximum allowed size of {max_size} bytes"
+            detail=f"File size exceeds maximum allowed size of {settings.max_file_size} bytes"
         )
 
     # Determine content type
@@ -79,8 +79,17 @@ async def upload_file(
     temp_dir.mkdir(parents=True, exist_ok=True)
     file_path = temp_dir / str(db_file.id)
 
-    with open(file_path, "wb") as f:
-        f.write(file_content)
+    try:
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+    except Exception as e:
+        # Clean up database record if file write fails
+        db.delete(db_file)
+        db.commit()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save file: {str(e)}"
+        )
 
     # Update file path in database
     db_file.file_path = str(file_path)
