@@ -35,8 +35,8 @@ class TestTemplateSelectionPage:
 
     def test_template_list_page_exists(self, page: Page, server):
         """Template selection page should be accessible."""
-        # Navigate with domcontentloaded to avoid waiting for all resources
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+        # Navigate with domcontentloaded to avoid waiting for full page load
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded")
 
         # Wait for JavaScript rendering to complete
         page.wait_for_timeout(2000)
@@ -48,8 +48,8 @@ class TestTemplateSelectionPage:
 
     def test_template_list_shows_builtin_templates(self, page: Page, server):
         """Should show built-in example templates."""
-        # Navigate with domcontentloaded to avoid waiting for all resources
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+        # Navigate with domcontentloaded to avoid waiting for full page load
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded")
 
         # Wait for JavaScript rendering to complete
         page.wait_for_timeout(2000)
@@ -61,8 +61,8 @@ class TestTemplateSelectionPage:
 
     def test_template_selection_navigates_to_mapping(self, page: Page, server):
         """Selecting template should navigate to mapping with both IDs."""
-        # Navigate with domcontentloaded to avoid waiting for all resources
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+        # Navigate with domcontentloaded to avoid waiting for full page load
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded")
 
         # Wait for JavaScript rendering to complete
         page.wait_for_timeout(2000)
@@ -80,8 +80,8 @@ class TestTemplateSelectionPage:
 
     def test_template_upload_option_available(self, page: Page, server):
         """Should have option to upload custom template."""
-        # Navigate with domcontentloaded to avoid waiting for all resources
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded", timeout=60000)
+        # Navigate with domcontentloaded to avoid waiting for full page load
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="domcontentloaded")
 
         # Wait for JavaScript rendering to complete
         page.wait_for_timeout(2000)
