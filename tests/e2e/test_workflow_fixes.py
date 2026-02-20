@@ -26,36 +26,36 @@ class TestTemplateSelectionPage:
 
     def test_template_list_page_exists(self, page: Page, server):
         """Template selection page should be accessible."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123")
-        
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+
         # Should show template selection interface
         expect(page.locator("h1")).to_contain_text("选择模板")
         expect(page.locator("text=发票模板").first).to_be_visible()
         expect(page.locator("text=合同模板").first).to_be_visible()
-    
+
     def test_template_list_shows_builtin_templates(self, page: Page, server):
         """Should show built-in example templates."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123")
-        
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+
         # Should have at least 3 built-in templates
         templates = page.locator("[data-testid='template-card']")
         expect(templates).to_have_count(3)
-    
+
     def test_template_selection_navigates_to_mapping(self, page: Page, server):
         """Selecting template should navigate to mapping with both IDs."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123")
-        
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
+
         # Click first template's "Use" button
         page.locator("[data-testid='use-template-btn']").first.click()
-        
+
         # Should navigate to mapping page with both parameters
-        page.wait_for_url(lambda url: "/mapping.html" in url and 
-                         "file_id=test-file-123" in url and 
+        page.wait_for_url(lambda url: "/mapping.html" in url and
+                         "file_id=test-file-123" in url and
                          "template_id=" in url)
-    
+
     def test_template_upload_option_available(self, page: Page, server):
         """Should have option to upload custom template."""
-        page.goto("http://localhost:8000/templates.html?file_id=test-file-123")
+        page.goto("http://localhost:8000/templates.html?file_id=test-file-123", wait_until="commit")
 
         expect(page.locator("text=上传我的模板").first).to_be_visible()
         expect(page.locator("input[type='file'][accept='.docx,.txt']")).to_be_attached()
