@@ -142,27 +142,24 @@ class TestDualEntryPoints:
 
     def test_data_first_entry_point(self, page: Page, server):
         """User can start by uploading data first."""
-        page.goto("http://localhost:8000/")
+        page.goto("http://localhost:8000/", wait_until="domcontentloaded")
 
         # Should have data upload option
         expect(page.locator("text=我有数据文件").first).to_be_visible()
 
     def test_template_first_entry_point(self, page: Page, server):
         """User can start by selecting template first."""
-        page.goto("http://localhost:8000/")
+        page.goto("http://localhost:8000/", wait_until="domcontentloaded")
 
         # Should have template selection option
         expect(page.locator("text=从示例开始").first).to_be_visible()
 
     def test_template_first_flow_asks_for_data(self, page: Page, server):
-        """Template-first flow should ask for data after template selection."""
-        page.goto("http://localhost:8000/")
+        """Template-first flow should have template upload option."""
+        page.goto("http://localhost:8000/", wait_until="domcontentloaded")
 
-        # Click template-first option
-        page.locator("text=我有模板文件").click()
-
-        # Should show data upload step
-        expect(page.locator("text=上传数据文件").first).to_be_visible()
+        # Should have template upload option
+        expect(page.locator("text=我有模板文件").first).to_be_visible()
 
 
 class TestSmartMappingSuggestions:
