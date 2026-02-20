@@ -13,6 +13,7 @@ import io
 
 import pytest
 from fastapi.testclient import TestClient
+from uuid import uuid4
 
 from src.main import _file_storage, app
 from src.models.file import FileStatus, UploadFile
@@ -235,7 +236,9 @@ class TestParseFileEndpoint:
         Args:
             client: FastAPI test client
         """
-        response = client.get("/api/v1/parse/nonexistent-file-id")
+        # Use a valid UUID format that doesn't exist in the database
+        non_existent_file_id = str(uuid4())
+        response = client.get(f"/api/v1/parse/{non_existent_file_id}")
 
         # Verify error response
         assert response.status_code == 404
@@ -305,10 +308,12 @@ class TestCreateMappingEndpoint:
             client: FastAPI test client
             sample_template: Template ID
         """
+        # Use a valid UUID format that doesn't exist in the database
+        non_existent_file_id = str(uuid4())
         response = client.post(
             "/api/v1/mappings",
             params={
-                "file_id": "nonexistent-file-id",
+                "file_id": non_existent_file_id,
                 "template_id": sample_template
             },
             json={}
