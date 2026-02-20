@@ -25,10 +25,19 @@ def server():
     and stops it after all tests complete.
     """
     import socket
+    import sys
+    from pathlib import Path
+
+    # Find uvicorn executable in virtual environment
+    venv_path = Path(__file__).parent.parent / ".venv"
+    if sys.platform == "win32":
+        uvicorn_exe = venv_path / "Scripts" / "uvicorn.exe"
+    else:
+        uvicorn_exe = venv_path / "bin" / "uvicorn"
 
     # Start uvicorn server in background
     proc = subprocess.Popen(
-        ["uvicorn", "src.main:app", "--port", "8000", "--log-level", "error"],
+        [str(uvicorn_exe), "src.main:app", "--port", "8000", "--log-level", "error"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
