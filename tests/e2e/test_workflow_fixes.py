@@ -18,16 +18,13 @@ import pytest
 # Skip all tests in this module if playwright is not installed
 pytest.importorskip("playwright.sync_api")
 
-from playwright.sync_api import Page, Browser, expect
+from playwright.sync_api import Page, BrowserContext, expect
 
 
 @pytest.fixture
-def page(browser: Browser) -> Page:
-    """Create a fresh page for each test with a new context."""
-    context = browser.new_context()
-    page = context.new_page()
-    yield page
-    context.close()
+def page(context: BrowserContext) -> Page:
+    """Use pytest-playwright's context fixture which is function-scoped."""
+    return context.new_page()
 
 
 class TestTemplateSelectionPage:
